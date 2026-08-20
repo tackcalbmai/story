@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#efe9df" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Story — Archive prototype</title>
+  <link rel="stylesheet" href="./archive-v1.css" />
+</head>
+<body>
+  <main class="experience" id="experience" data-phase="gate">
+    <div class="paper-noise" aria-hidden="true"></div>
+
+    <section class="gate" id="gate">
+      <div class="gate-mark" aria-hidden="true"></div>
+      <p class="gate-kicker">STORY / prototype 01</p>
+      <h1>Фрагмент найден.</h1>
+      <p class="gate-copy">Лучше со звуком.</p>
+      <button class="start" id="start" type="button">коснуться</button>
+    </section>
+
+    <section class="archive" id="archive" aria-hidden="true">
+      <header class="archive-head">
+        <span class="chapter">архив / 001</span>
+        <button id="soundToggle" class="sound-toggle" type="button" aria-label="Выключить звук">звук · вкл</button>
+      </header>
+
+      <div class="stage" id="stage">
+        <div class="profile profile-a" data-profile="01">
+          <div class="profile-orbit" aria-hidden="true"></div>
+          <div class="profile-core">01</div>
+        </div>
+
+        <div class="profile profile-b" data-profile="02">
+          <div class="profile-orbit" aria-hidden="true"></div>
+          <div class="profile-core">02</div>
+        </div>
+
+        <svg class="connection-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+          <path id="lineA" class="connection-line" d="M 180 500 C 350 500 400 500 500 500" />
+          <path id="lineB" class="connection-line" d="M 820 500 C 650 500 600 500 500 500" />
+        </svg>
+
+        <div class="fragment" id="fragment" role="button" tabindex="0" aria-label="Аудиофрагмент. Перетащите к одному из профилей.">
+          <div class="fragment-index" id="fragmentIndex">fragment 0001</div>
+          <svg class="wave" id="wave" viewBox="0 0 320 72" aria-hidden="true"></svg>
+          <div class="fragment-meta">
+            <span id="fragmentTime">00:18</span>
+            <span id="fragmentType">audio</span>
+          </div>
+        </div>
+
+        <div class="prompt" id="prompt">перетащите фрагмент</div>
+
+        <div class="diagnostic" id="diagnostic" aria-live="polite">
+          <div class="diagnostic-line" id="diagnosticMain"></div>
+          <div class="diagnostic-sub" id="diagnosticSub"></div>
+        </div>
+
+        <aside class="future-fragment" id="futureFragment" aria-hidden="true">
+          <span>1848</span>
+          <small>сегодня</small>
+        </aside>
+      </div>
+
+      <footer class="archive-foot">
+        <span id="progressLabel">01 / 03</span>
+        <span class="hint">drag · listen · observe</span>
+      </footer>
+    </section>
+  </main>
+
+  <script src="./archive-v1.js"></script>
+</body>
+</html>
