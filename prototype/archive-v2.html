@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#efe9df" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Story — Vertical slice v2</title>
+  <link rel="stylesheet" href="./archive-v1.css" />
+  <link rel="stylesheet" href="./scene-v2.css" />
+</head>
+<body>
+  <main class="experience" id="experience" data-phase="gate">
+    <div class="paper-noise" aria-hidden="true"></div>
+
+    <section class="gate" id="gate">
+      <div class="gate-mark" aria-hidden="true"></div>
+      <p class="gate-kicker">STORY / vertical slice</p>
+      <h1>Фрагмент найден.</h1>
+      <p class="gate-copy">Лучше со звуком.</p>
+      <button class="start" id="start" type="button">коснуться</button>
+    </section>
+
+    <section class="archive" id="archive" aria-hidden="true">
+      <header class="archive-head">
+        <span class="chapter">архив / 001</span>
+        <button id="soundToggle" class="sound-toggle" type="button" aria-label="Выключить звук">звук · вкл</button>
+      </header>
+
+      <div class="stage" id="stage">
+        <div class="profile profile-a" data-profile="01">
+          <div class="profile-orbit" aria-hidden="true"></div>
+          <div class="profile-core">01</div>
+        </div>
+        <div class="profile profile-b" data-profile="02">
+          <div class="profile-orbit" aria-hidden="true"></div>
+          <div class="profile-core">02</div>
+        </div>
+
+        <svg class="connection-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+          <path id="lineA" class="connection-line" d="M 180 500 C 350 500 400 500 500 500" />
+          <path id="lineB" class="connection-line" d="M 820 500 C 650 500 600 500 500 500" />
+        </svg>
+
+        <div class="fragment" id="fragment" role="button" tabindex="0" aria-label="Аудиофрагмент. Перетащите к одному из профилей.">
+          <div class="fragment-index" id="fragmentIndex">fragment 0001</div>
+          <svg class="wave" id="wave" viewBox="0 0 320 72" aria-hidden="true"></svg>
+          <div class="fragment-meta"><span id="fragmentTime">00:18</span><span id="fragmentType">audio</span></div>
+        </div>
+
+        <div class="prompt" id="prompt">перетащите фрагмент</div>
+        <div class="diagnostic" id="diagnostic" aria-live="polite">
+          <div class="diagnostic-line" id="diagnosticMain"></div>
+          <div class="diagnostic-sub" id="diagnosticSub"></div>
+        </div>
+        <aside class="future-fragment" id="futureFragment" aria-hidden="true"><span>1848</span><small>сегодня</small></aside>
+      </div>
+
+      <footer class="archive-foot"><span id="progressLabel">01 / 03</span><span class="hint">drag · listen · observe</span></footer>
+    </section>
+
+    <section class="story-scene" id="storyScene" aria-hidden="true">
+      <div class="scene-vignette" aria-hidden="true"></div>
+      <div class="scene-grain" aria-hidden="true"></div>
+
+      <div class="road-world" aria-hidden="true">
+        <div class="road-light road-light-a"></div>
+        <div class="road-light road-light-b"></div>
+        <div class="road-light road-light-c"></div>
+        <svg class="road-sketch" viewBox="0 0 390 844" preserveAspectRatio="none">
+          <path class="sketch-soft" d="M15 128 C96 74 269 63 381 118" />
+          <path class="sketch-soft" d="M9 558 C108 519 279 524 389 579" />
+          <path class="sketch" d="M59 602 C111 560 152 539 196 530 C241 521 287 534 340 578" />
+          <path class="sketch" d="M118 673 C135 604 166 574 213 568 C267 561 306 596 322 677" />
+          <circle class="wheel" cx="220" cy="711" r="76" />
+          <path class="sketch" d="M151 710 C190 684 249 680 291 714" />
+          <path class="driver-line" d="M95 402 C111 333 157 294 208 300 C254 305 272 342 270 386 C268 432 237 457 202 463 C160 469 116 451 95 402 Z" />
+          <path class="driver-line" d="M151 464 C124 494 107 540 102 609" />
+          <path class="driver-line" d="M224 463 C264 490 291 543 299 611" />
+        </svg>
+      </div>
+
+      <header class="scene-head">
+        <span>01 · фрагмент сцены</span>
+        <span id="sceneTimer">00:03</span>
+      </header>
+
+      <div class="call-mark" aria-hidden="true"><i></i><span>связь активна</span></div>
+
+      <div class="dialogue-stack" aria-live="polite">
+        <p class="dialogue dialogue-a">— Ты вообще куда едешь?</p>
+        <p class="dialogue dialogue-b">— По делам.</p>
+        <p class="dialogue dialogue-c">— Очень подробно.</p>
+        <p class="dialogue dialogue-d">— Рад помочь.</p>
+      </div>
+
+      <div class="scene-continuation" id="sceneContinuation">
+        <span>02 · другая сторона разговора</span>
+        <button type="button" id="continueScene">продолжить</button>
+      </div>
+
+      <button class="prototype-back" id="prototypeBack" type="button" aria-label="Вернуться в архив">↩</button>
+    </section>
+  </main>
+
+  <script src="./archive-v1.js"></script>
+  <script src="./scene-v2.js"></script>
+</body>
+</html>
