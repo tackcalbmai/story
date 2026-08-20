@@ -1,0 +1,226 @@
+(()=>{
+'use strict';
+
+const experience=document.querySelector('#experience');
+const start=document.querySelector('#start');
+const archive=document.querySelector('#archive');
+const stage=document.querySelector('#stage');
+const fragment=document.querySelector('#fragment');
+const fragmentIndex=document.querySelector('#fragmentIndex');
+const fragmentTime=document.querySelector('#fragmentTime');
+const fragmentType=document.querySelector('#fragmentType');
+const wave=document.querySelector('#wave');
+const prompt=document.querySelector('#prompt');
+const diagnostic=document.querySelector('#diagnostic');
+const diagnosticMain=document.querySelector('#diagnosticMain');
+const diagnosticSub=document.querySelector('#diagnosticSub');
+const futureFragment=document.querySelector('#futureFragment');
+const progressLabel=document.querySelector('#progressLabel');
+const soundToggle=document.querySelector('#soundToggle');
+const profiles=[...document.querySelectorAll('.profile')];
+
+const fragments=[
+  {id:'0001',duration:'00:18',kind:'road',owner:'01',seed:17},
+  {id:'0002',duration:'00:24',kind:'kitchen',owner:'02',seed:41},
+  {id:'0003',duration:'00:31',kind:'mixed',owner:null,seed:73}
+];
+
+let current=0;
+let attempts=0;
+let drag=null;
+let muted=false;
+let audio=null;
+let bed=[];
+
+class AudioBed{
+  constructor(){this.ctx=null;this.master=null;}
+  async init(){
+    if(this.ctx){if(this.ctx.state==='suspended')await this.ctx.resume();return;}
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    this.ctx=new AC();
+    this.master=this.ctx.createGain();
+    this.master.gain.value=.18;
+    this.master.connect(this.ctx.destination);
+    if(this.ctx.state==='suspended')await this.ctx.resume();
+  }
+  stop(){bed.forEach(n=>{try{n.stop?.()}catch{}});bed=[];}
+  noise(color='brown',gain=.035,cut=900){
+    if(!this.ctx||!this.master)return;
+    const len=this.ctx.sampleRate*2;
+    const b=this.ctx.createBuffer(1,len,this.ctx.sampleRate);
+    const d=b.getChannelData(0);let last=0;
+    for(let i=0;i<len;i++){
+      const w=Math.random()*2-1;
+      if(color==='brown'){last=(last+.02*w)/1.02;d[i]=last*3.5}else d[i]=w*.55;
+    }
+    const src=this.ctx.createBufferSource();src.buffer=b;src.loop=true;
+    const filter=this.ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=cut;
+    const g=this.ctx.createGain();g.gain.value=gain;
+    src.connect(filter).connect(g).connect(this.master);src.start();bed.push(src);
+  }
+  tone(freq=520,len=.12,gain=.035,delay=0){
+    if(!this.ctx||!this.master||muted)return;
+    const t=this.ctx.currentTime+delay;
+    const o=this.ctx.createOscillator(),g=this.ctx.createGain();
+    o.type='sine';o.frequency.value=freq;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+len);
+    o.connect(g).connect(this.master);o.start(t);o.stop(t+len+.03);
+  }
+  setMuted(v){if(this.master)this.master.gain.setTargetAtTime(v?0:.18,this.ctx.currentTime,.04);}
+  play(kind){
+    this.stop();
+    if(kind==='road'){this.noise('brown',.06,540);this.tone(155,.45,.015,.18);}
+    if(kind==='kitchen'){this.noise('white',.025,2300);this.tone(780,.08,.018,.3);this.tone(1040,.05,.012,.54);}
+    if(kind==='mixed'){this.noise('brown',.045,620);this.noise('white',.014,2100);this.tone(660,.08,.015,.26);}
+  }
+}
+audio=new AudioBed();
+
+function seeded(seed){let x=seed;return()=>{x=(x*9301+49297)%233280;return x/233280}}
+function drawWave(seed){
+  const rand=seeded(seed);wave.innerHTML='';
+  const n=68;
+  for(let i=0;i<n;i++){
+    const x=5+i*(310/(n-1));
+    const envelope=.28+.72*Math.sin(Math.PI*i/(n-1));
+    const amp=(5+rand()*24)*envelope;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x);line.setAttribute('x2',x);
+    line.setAttribute('y1',36-amp);line.setAttribute('y2',36+amp);
+    if(i>31&&i<37)line.classList.add('hot');
+    wave.append(line);
+  }
+}
+
+function loadFragment(i){
+  current=i;attempts=0;
+  const f=fragments[i];
+  fragmentIndex.textContent=`fragment ${f.id}`;
+  fragmentTime.textContent=f.duration;
+  fragmentType.textContent='audio';
+  progressLabel.textContent=`0${i+1} / 03`;
+  drawWave(f.seed);
+  resetFragment(true);
+  prompt.textContent=i<2?'перетащите фрагмент':'определите владельца';
+  prompt.style.opacity='1';
+  diagnostic.classList.remove('show');
+  stage.classList.remove('connected');
+  fragment.classList.remove('unresolved');
+  profiles.forEach(p=>p.classList.remove('match'));
+  audio.play(f.kind);
+}
+
+function resetFragment(instant=false){
+  fragment.style.transition=instant?'none':'transform .55s cubic-bezier(.2,.9,.25,1)';
+  fragment.style.transform='translate(-50%,-50%)';
+  requestAnimationFrame(()=>{fragment.style.transition='box-shadow .25s,filter .25s'});
+}
+
+function centerOf(el){const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+function nearestProfile(x,y){
+  let best=null,bestD=Infinity;
+  profiles.forEach(p=>{const c=centerOf(p);const d=Math.hypot(x-c.x,y-c.y);if(d<bestD){bestD=d;best=p}});
+  return bestD<125?best:null;
+}
+
+function snapToProfile(profile){
+  const sr=stage.getBoundingClientRect(),fr=fragment.getBoundingClientRect(),pr=profile.getBoundingClientRect();
+  const tx=(pr.left+pr.width/2)-(fr.left+fr.width/2);
+  const ty=(pr.top+pr.height/2)-(fr.top+fr.height/2);
+  fragment.style.transition='transform .36s cubic-bezier(.2,.9,.25,1)';
+  fragment.style.transform=`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(.86)`;
+  profile.classList.add('match');
+}
+
+function accept(profile){
+  snapToProfile(profile);audio.tone(720,.12,.03);
+  prompt.style.opacity='0';
+  setTimeout(()=>{
+    if(current<2){
+      fragment.style.opacity='0';
+      setTimeout(()=>{fragment.style.opacity='1';loadFragment(current+1)},220);
+    }
+  },650);
+}
+
+function unresolved(profile){
+  attempts++;
+  snapToProfile(profile);
+  audio.tone(260,.18,.025);
+  diagnosticMain.textContent='владелец не определён';
+  diagnosticSub.textContent=attempts===1?'попробуйте другую сторону':'';
+  diagnostic.classList.add('show');
+  setTimeout(()=>{
+    profile.classList.remove('match');
+    resetFragment();
+    if(attempts===1){prompt.style.opacity='1';prompt.textContent='попробуйте ещё раз'}
+    else revealConnection();
+  },700);
+}
+
+function revealConnection(){
+  prompt.style.opacity='0';
+  diagnostic.classList.remove('show');
+  fragment.classList.add('unresolved');
+  stage.classList.add('connected');
+  profiles.forEach(p=>p.classList.add('match'));
+  audio.tone(520,.22,.025);audio.tone(780,.34,.018,.07);
+  setTimeout(()=>{
+    diagnosticMain.textContent='обнаружено наложение';
+    diagnosticSub.textContent='один фрагмент · два контекста';
+    diagnostic.classList.add('show');
+  },520);
+  setTimeout(()=>futureFragment.classList.add('peek'),1500);
+  setTimeout(()=>{
+    diagnosticMain.textContent='общие координаты · 0';
+    diagnosticSub.textContent='связанные фрагменты · 1847';
+  },2900);
+}
+
+function pointerDown(e){
+  if(current===2&&attempts>=2)return;
+  fragment.setPointerCapture?.(e.pointerId);
+  const r=fragment.getBoundingClientRect();
+  drag={id:e.pointerId,startX:e.clientX,startY:e.clientY,baseX:0,baseY:0};
+  fragment.classList.add('dragging');
+  fragment.style.transition='none';
+}
+function pointerMove(e){
+  if(!drag||drag.id!==e.pointerId)return;
+  const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;
+  fragment.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) rotate(${dx*.018}deg)`;
+}
+function pointerUp(e){
+  if(!drag||drag.id!==e.pointerId)return;
+  const target=nearestProfile(e.clientX,e.clientY);
+  fragment.classList.remove('dragging');
+  drag=null;
+  if(!target){resetFragment();return;}
+  const f=fragments[current];
+  if(f.owner===target.dataset.profile)accept(target); else if(f.owner===null)unresolved(target); else resetFragment();
+}
+
+fragment.addEventListener('pointerdown',pointerDown);
+fragment.addEventListener('pointermove',pointerMove);
+fragment.addEventListener('pointerup',pointerUp);
+fragment.addEventListener('pointercancel',()=>{drag=null;fragment.classList.remove('dragging');resetFragment()});
+fragment.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;e.preventDefault();
+  const target=profiles[current===1?1:0];
+  if(current<2)accept(target); else unresolved(profiles[attempts%2]);
+});
+
+start.addEventListener('click',async()=>{
+  try{await audio.init()}catch{}
+  experience.dataset.phase='archive';archive.setAttribute('aria-hidden','false');
+  loadFragment(0);
+});
+
+soundToggle.addEventListener('click',()=>{
+  muted=!muted;audio.setMuted(muted);
+  soundToggle.textContent=muted?'звук · выкл':'звук · вкл';
+  soundToggle.setAttribute('aria-label',muted?'Включить звук':'Выключить звук');
+});
+
+})();
