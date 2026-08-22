@@ -2,113 +2,134 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#050609">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#090b0c">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>Место, которого нет</title>
+  <title>Между станциями — интерактивная история</title>
+  <meta name="description" content="Реалистическая интерактивная история для смартфона.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Между станциями">
+  <meta property="og:description" content="Реалистическая интерактивная история">
+  <meta property="og:image" content="https://cdn.creativeclaw.co/u/ce56d390/images/444f8320-cd9d-4125-967b-775d43960424.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Между станциями">
+  <meta name="twitter:description" content="Реалистическая интерактивная история">
+  <meta name="twitter:image" content="https://cdn.creativeclaw.co/u/ce56d390/images/444f8320-cd9d-4125-967b-775d43960424.png">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://cdn.creativeclaw.co" crossorigin>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main id="app" data-state="gate">
-  <div class="grain"></div><div class="vignette"></div>
+  <main id="app" data-phase="gate">
+    <div class="grain" aria-hidden="true"></div>
 
-  <section id="gate" class="gate">
-    <div class="gateThread">
-      <div class="bubble her gateA">И так…</div>
-      <div class="bubble him gateB">НЕЕЕТ</div>
-      <button id="start" class="start"><i></i> начать</button>
-      <small>лучше со звуком</small>
-    </div>
-  </section>
+    <section id="gate" class="gate" aria-labelledby="title">
+      <div class="gate-light" aria-hidden="true"></div>
+      <p class="workprint">WORKPRINT · 01</p>
+      <div class="gate-copy">
+        <p class="country-line"><span>УКРАИНА</span><i></i><span>ЛАТВИЯ</span></p>
+        <h1 id="title">Между<br>станциями</h1>
+        <p>Звук участвует в загадке.<br>Все значимые звуки имеют субтитры.</p>
+      </div>
+      <div class="gate-actions">
+        <button id="startSound" class="primary">Начать со звуком</button>
+        <button id="startSilent" class="quiet">Пройти без звука</button>
+      </div>
+    </section>
 
-  <section id="film" class="film" aria-hidden="true">
-    <div class="progress"><i id="progressBar"></i></div>
-    <button id="mute" class="mute" aria-label="Выключить звук">◖</button>
+    <section id="experience" class="experience" hidden aria-live="polite">
+      <header class="topbar">
+        <div><b>МЕЖДУ СТАНЦИЯМИ</b><span id="chapter">01 · ПОСАДКА</span></div>
+        <button id="soundToggle" class="sound-toggle" aria-label="Выключить звук" aria-pressed="false">ЗВУК</button>
+      </header>
 
-    <div id="stage">
-      <section class="scene opening" data-name="opening" data-d="18">
-        <div class="half left bedroom">
-          <div class="window"><b></b><b></b><b></b></div>
-          <div class="bed"><i></i><em></em></div><div class="girl"></div><div class="phoneGlow"></div>
+      <div id="stage" class="stage">
+        <img id="trainBackground" class="train-background" alt="Ночной вагон поезда">
+        <div class="stage-vignette" aria-hidden="true"></div>
+        <div id="motionWash" class="motion-wash" aria-hidden="true"></div>
+
+        <div id="twoCountries" class="two-countries">
+          <div class="country ukraine"><small>ОНА</small><b>УКРАИНА</b><span>после смены</span></div>
+          <div class="call-pulse" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="country latvia"><small>ОН</small><b>ЛАТВИЯ</b><span>на линии</span></div>
         </div>
-        <div class="half right car"><div class="glass"><i></i><i></i></div><div class="wheel"></div><div class="man"></div></div>
-        <div class="bubble her o3">Я вообще-то ничего ещё не сказала 😂</div><div class="bubble him o4">Я знаю.</div>
-        <div class="title"><small>история о месте</small><strong>которого нет</strong></div>
-      </section>
 
-      <section class="scene road" data-name="road" data-d="24">
-        <div class="roadWorld car"><div class="glass moving"><i></i><i></i><span class="lights"></span></div><div class="wheel"></div><div class="man"></div><div class="call"><i></i> малыш <small>на линии</small></div></div>
-        <div class="kitchenWorld"><div class="lamp l1"></div><div class="lamp l2"></div><div class="pass"></div><div class="steam s1"></div><div class="steam s2"></div><div class="chef"></div></div>
-        <p class="caption c1">— Подожди секунду, малыш.</p>
-        <div class="shout">ПОДАЧА!</div><p class="caption c2">— Спасибо. Я теперь тоже на смене.</p>
-      </section>
-
-      <section class="scene montage" data-name="montage" data-d="22">
-        <div class="cards">
-          <article><small>08:14</small><b>Доброе утро, малыш ❤️</b></article>
-          <article><small>13:06</small><b>Почавкала?</b></article>
-          <article class="wide"><span class="miniRoad"></span><b>её голос в дороге</b></article>
-          <article><b>малыш</b><small>слово стало общим</small></article>
-          <article><small>00:41</small><b>И так…</b><em>НЕЕЕТ</em></article>
+        <div id="dialogue" class="dialogue" hidden>
+          <span id="speaker"></span>
+          <p id="line"></p>
         </div>
-        <p class="thesis">У каждого был свой день.<br><b>Некоторые минуты стали общими.</b></p>
-      </section>
 
-      <section class="scene armor" data-name="armor" data-d="27">
-        <div class="armorDay"><div class="chef upright"></div><p class="mask">— Всё нормально.</p></div>
-        <div class="armorNight"><div class="bed close"><i></i><em></em></div><div class="girl hidden"></div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <p class="a1">— Я просто устала…</p><p class="a2">— Ненавижу вот это.</p><p class="a3">— Ты спряталась?</p><p class="a4">— Нет.</p><p class="a5">— Враки.</p>
+        <div id="ticketTask" class="task-layer" hidden>
+          <div id="scanner" class="scanner" aria-label="Сканер билета"><i></i><span>ПОДНЕСИ БИЛЕТ</span></div>
+          <button id="ticket" class="ticket" aria-label="Перетащить билет к сканеру">
+            <small>ЭЛЕКТРОННЫЙ БИЛЕТ</small><b>████ ████</b><i></i>
+          </button>
         </div>
-      </section>
 
-      <section class="scene winter" data-name="winter" data-d="19">
-        <div class="ice i1"></div><div class="ice i2"></div><div class="warm"></div>
-        <div class="player"><div class="cover"><i></i></div><div><small>Неизвестный исполнитель</small><b>Вечная зима</b><em><i></i></em></div></div>
-        <blockquote>Ты и есть это тепло…<br><b>И зима уступила весне.</b></blockquote>
-        <div class="bubble her w1">Красиво так 🥺</div><div class="bubble her w2">Но очень печально 🥺</div>
-        <div class="bubble her w3">Ты видишь то, что я позволяю видеть…</div><div class="bubble her w4">Но с тобой это как-то не действует.</div>
-      </section>
+        <div id="bagTask" class="task-layer" hidden>
+          <div id="bagTarget" class="bag-target"><span>ПОСТАВЬ СУМКУ</span></div>
+          <button id="bag" class="bag" aria-label="Перетащить сумку"><img alt="Тёмная рабочая сумка"></button>
+        </div>
 
-      <section class="scene love" data-name="love" data-d="17">
-        <div class="car parked"><div class="glass"><span class="parking"></span></div><div class="wheel"></div><div class="man"></div></div>
-        <div class="voice"><span></span><button tabindex="-1">▶</button><div><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><small>0:08</small></div>
-        <div class="loveWord">…люблю.</div>
-      </section>
+        <button id="recLed" class="rec-led" hidden aria-label="Красный индикатор под полкой"><i></i><span>Что это?</span></button>
 
-      <section class="scene pressure" data-name="pressure" data-d="22">
-        <div class="pressureHer"><div class="kitchenGhost"></div><div class="schedule"><i></i><i></i><i></i><i></i><i></i></div><div class="bubble him unread">малыш?</div><small>прочитано позже</small></div>
-        <div class="pressureHim"><div class="bag"></div><div class="boots"></div><div class="schedule"><i></i><i></i><i></i><i></i><i></i></div><span class="clock">23:48</span></div>
-        <p class="pressureText">Дни становились теснее.<br><b>Их место — тоже.</b></p>
-      </section>
+        <section id="recorderPanel" class="recorder-panel" hidden aria-label="Найденный диктофон">
+          <div class="recorder-object"><img alt="Найденный цифровой диктофон"><i class="device-led"></i></div>
+          <div class="device-display"><span id="deviceState">REC</span><b id="deviceTime">00:17:42</b></div>
+          <div class="device-controls">
+            <button data-control="stop">STOP</button>
+            <button data-control="rew" disabled>REW</button>
+            <button data-control="play" disabled>PLAY</button>
+          </div>
+          <p id="controlHint">Сначала останови запись.</p>
+        </section>
 
-      <section class="scene future" data-name="future" data-d="25">
-        <div class="futureLeft car"><div class="glass"></div><div class="wheel"></div></div><div class="futureRight bedroom"><div class="window"><b></b><b></b><b></b></div><div class="bed"></div></div>
-        <div class="futureLines"><p>— А если потом…</p><p>— Не надо.</p><p>— Я ещё ничего не сказал.</p><p>— Я знаю.</p><p>Я не хочу заранее проживать то,<br>чего ещё нет.</p></div>
-        <strong class="wish">Это же общее желание.</strong>
-      </section>
+        <div id="soundCaption" class="sound-caption" hidden></div>
 
-      <section class="scene bedtime" data-name="bedtime" data-d="26">
-        <div class="bedtimeHer bedroom"><div class="window"><b></b><b></b><b></b></div><div class="bed"><i></i><em></em></div></div><div class="bedtimeHim"></div>
-        <div class="bubble her b1">Сладких снов, малыш ❤️</div>
-        <div class="sticker kissHer"><span class="head"></span><span class="hair"></span><span class="body"></span><b>♡</b></div>
-        <div class="longMsg"><i></i><i></i><i></i><i></i></div><div class="bubble him b2">…сладких снов, малыш ❤️</div>
-        <div class="sticker kissHim"><span class="boy"></span><span class="sgirl"></span><b>♥</b></div>
-        <div class="ending"><div class="win wh"><i></i></div><div class="win wm"><i></i></div><span class="trace t1"></span><span class="trace t2"></span></div>
-      </section>
-    </div>
-  </section>
+        <section id="orderPuzzle" class="order-puzzle" hidden>
+          <p class="puzzle-kicker">ЗАПИСЬ НЕ ПОКАЗЫВАЕТ НАПРАВЛЕНИЕ</p>
+          <h2>Что произошло до отправления?</h2>
+          <div id="orderSlots" class="order-slots" aria-label="Собранный порядок"></div>
+          <div id="orderChoices" class="order-choices"></div>
+          <button id="checkOrder" class="primary" disabled>Проверить</button>
+          <p id="orderResult" class="order-result"></p>
+        </section>
 
-  <section id="epilogue" class="epilogue" aria-hidden="true">
-    <div><h2>С днём рождения, малыш.</h2><p>Про «потом» мы договорились не торопиться.<br>А это — про то, что уже не изменится.</p><button id="replay">ещё раз</button></div>
-  </section>
+        <section id="recordingScene" class="recording-scene" hidden>
+          <p class="recording-label">ПОСЛЕДНИЙ ФАЙЛ · 00:46</p>
+          <div class="waveform" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <blockquote id="recordingText"></blockquote>
+          <button id="continueRecording" class="primary" hidden>Слушать дальше</button>
+        </section>
 
-  <section id="resume" class="resume"><button id="resumeBtn">продолжить</button></section>
-  <div id="debug" class="debug" hidden><span id="debugScene">—</span><span id="debugTime">0</span><button id="prev">←</button><button id="next">→</button></div>
-</main>
-<audio id="winterAudio" preload="auto" src="assets/audio/winter.mp3"></audio>
-<audio id="loveAudio" preload="auto" src="assets/audio/love-voice.m4a"></audio>
-<script src="app.js"></script>
+        <section id="voiceMatch" class="voice-match" hidden>
+          <p>Кто-то останавливается в коридоре.</p>
+          <div class="voice-lines">
+            <span>НА ЗАПИСИ</span><i></i><span>ЗА ДВЕРЬЮ</span>
+          </div>
+          <h2>Тот же голос?</h2>
+          <div class="choice-row">
+            <button data-final-choice="hide">Убрать диктофон</button>
+            <button data-final-choice="keep">Оставить на виду</button>
+          </div>
+        </section>
+
+        <section id="workprintEnd" class="workprint-end" hidden>
+          <small>КОНЕЦ ПЕРВОГО ИГРОВОГО ФРАГМЕНТА</small>
+          <h2>Противоречие замечено.<br>Разгадка ещё впереди.</h2>
+          <p id="choiceConsequence"></p>
+          <button id="restart" class="quiet light">Пройти ещё раз</button>
+        </section>
+      </div>
+
+      <footer class="action-rail">
+        <p id="objective">Звонок уже идёт.</p>
+        <div class="call-state"><i></i><span>ОН · ЛАТВИЯ · НА ЛИНИИ</span></div>
+      </footer>
+    </section>
+  </main>
+
+  <script src="app.js" defer></script>
 </body>
 </html>

@@ -1,35 +1,494 @@
-(()=>{'use strict';
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const app=$('#app'),film=$('#film'),scenes=$$('.scene'),start=$('#start'),replay=$('#replay'),mute=$('#mute'),bar=$('#progressBar'),resume=$('#resume'),resumeBtn=$('#resumeBtn'),winterAudio=$('#winterAudio'),loveAudio=$('#loveAudio');
-const durations=scenes.map(s=>Number(s.dataset.d||10));
-const offsets=[];let sum=0;durations.forEach(d=>{offsets.push(sum);sum+=d});const total=sum;
-let state='gate',current=-1,elapsed=0,last=0,raf=0,paused=false,waiting=false,muted=false,wakeLock=null;
-const fired=new Set();
+(() => {
+  "use strict";
 
-class Soundscape{constructor(){this.ctx=null;this.master=null;this.noise=null;this.bed=null}async init(){if(this.ctx){if(this.ctx.state==='suspended')await this.ctx.resume();return}const A=window.AudioContext||window.webkitAudioContext;if(!A)return;this.ctx=new A();this.master=this.ctx.createGain();this.master.gain.value=.25;this.master.connect(this.ctx.destination);this.noise=this.makeNoise(2.5);if(this.ctx.state==='suspended')await this.ctx.resume()}makeNoise(sec){const n=Math.floor(this.ctx.sampleRate*sec),b=this.ctx.createBuffer(1,n,this.ctx.sampleRate),a=b.getChannelData(0);let last=0;for(let i=0;i<n;i++){const w=Math.random()*2-1;last=last*.985+w*.015;a[i]=last*3.2}return b}setMute(v){if(!this.master||!this.ctx)return;this.master.gain.setTargetAtTime(v?0:.25,this.ctx.currentTime,.04)}stop(){if(!this.bed)return;try{this.bed.stop()}catch{}this.bed=null}ambient(cut=500,g=.04){if(!this.ctx||!this.noise)return;this.stop();const s=this.ctx.createBufferSource(),f=this.ctx.createBiquadFilter(),v=this.ctx.createGain();s.buffer=this.noise;s.loop=true;f.type='lowpass';f.frequency.value=cut;v.gain.value=g;s.connect(f).connect(v).connect(this.master);s.start();this.bed=s}tone(freq=660,len=.12,g=.06,type='sine',delay=0){if(!this.ctx||muted)return;const t=this.ctx.currentTime+delay,o=this.ctx.createOscillator(),v=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);v.gain.setValueAtTime(.0001,t);v.gain.exponentialRampToValueAtTime(g,t+.015);v.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(v).connect(this.master);o.start(t);o.stop(t+len+.03)}chime(){this.tone(880,.16,.04,'sine');this.tone(1320,.18,.025,'sine',.045)}thump(){if(!this.ctx||muted)return;const t=this.ctx.currentTime,o=this.ctx.createOscillator(),v=this.ctx.createGain();o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(48,t+.18);v.gain.setValueAtTime(.17,t);v.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(v).connect(this.master);o.start(t);o.stop(t+.22)}motif(){[440,523.25,659.25,587.33].forEach((f,i)=>this.tone(f,.8,.024,'sine',i*.55))}}
-const sound=new Soundscape();
+  const ASSETS = {
+    train: "https://cdn.creativeclaw.co/u/ce56d390/images/11c80fff-5ec1-4139-9151-2d3688d10bc2.png",
+    bag: "https://cdn.creativeclaw.co/u/ce56d390/images/8c0a0b44-a788-4c64-872c-dd662c7df9db.png",
+    recorder: "https://cdn.creativeclaw.co/u/ce56d390/images/8df5dfd5-0375-494b-99f0-2541540d4b46.png",
+    ownerVoice: "https://cdn.creativeclaw.co/u/ce56d390/audio/ca1d9628-d2c3-4a59-87e5-39e0bee3af5b.mp3",
+    manRecorded: "https://cdn.creativeclaw.co/u/ce56d390/audio/21becc01-5f79-473d-bdb0-fe5561d05ad0.mp3",
+    manLive: "https://cdn.creativeclaw.co/u/ce56d390/audio/60bd1d81-7afb-4656-993e-da78ef7bdd5c.mp3",
+  };
 
-async function keepAwake(){if(!('wakeLock'in navigator)||document.hidden||state!=='film')return;try{wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null},{once:true})}catch{wakeLock=null}}
-async function releaseWake(){if(!wakeLock)return;try{await wakeLock.release()}catch{}wakeLock=null}
-function once(key,globalAt,fn){if(fired.has(key)||elapsed<globalAt)return;fired.add(key);fn()}
-function restart(scene){if(!scene)return;scene.classList.remove('active','leaving');void scene.offsetWidth}
-function setScene(i,force=false){if(!force&&i===current)return;const prev=current;if(prev>=0&&scenes[prev]){scenes[prev].classList.remove('active');scenes[prev].classList.add('leaving');setTimeout(()=>scenes[prev]?.classList.remove('leaving'),700)}current=Math.max(0,Math.min(i,scenes.length-1));restart(scenes[current]);requestAnimationFrame(()=>scenes[current].classList.add('active'));sceneSound(scenes[current].dataset.name);updateDebug()}
-function sceneSound(name){if(name!=='winter')winterAudio.pause();if(name!=='love')loveAudio.pause();if(!sound.ctx)return;sound.stop();const map={opening:[300,.03],road:[520,.085],montage:[380,.035],armor:[220,.025],winter:[900,.018],love:[170,.022],pressure:[540,.038],future:[260,.023],bedtime:[200,.018]};const p=map[name]||[300,.02];sound.ambient(p[0],p[1])}
-function sceneAt(t){for(let i=scenes.length-1;i>=0;i--)if(t>=offsets[i])return i;return 0}
-function orchestrate(i){const name=scenes[i].dataset.name,base=offsets[i],k=x=>name+':'+x;if(name==='opening'){once(k('a'),base+.5,()=>sound.chime());once(k('b'),base+1.7,()=>sound.chime())}if(name==='road'){once(k('call'),base+1.1,()=>sound.chime());once(k('shout'),base+7,()=>sound.thump())}if(name==='winter'){once(k('music'),base+3.5,()=>{if(winterAudio.readyState>=2){winterAudio.currentTime=0;winterAudio.volume=muted?0:.45;winterAudio.play().catch(()=>sound.motif())}else sound.motif()})}if(name==='love'){once(k('note'),base+2,()=>sound.chime());once(k('love'),base+6.8,()=>{if(loveAudio.readyState>=2){loveAudio.currentTime=0;loveAudio.volume=muted?0:.75;loveAudio.play().catch(()=>sound.tone(392,1,.022))}else sound.tone(392,1,.022)})}if(name==='bedtime'){once(k('night'),base+.8,()=>sound.chime());once(k('reply'),base+10.6,()=>sound.chime())}}
-function tick(now){if(state!=='film')return;if(!last)last=now;if(!paused)elapsed+=(now-last)/1000;last=now;if(elapsed>=total){finish();return}const i=sceneAt(elapsed);setScene(i);bar.style.width=Math.min(100,elapsed/total*100)+'%';orchestrate(i);updateDebug();raf=requestAnimationFrame(tick)}
-async function begin(){state='film';app.dataset.state='film';film.setAttribute('aria-hidden','false');$('#epilogue').setAttribute('aria-hidden','true');elapsed=0;last=0;current=-1;paused=false;waiting=false;fired.clear();bar.style.width='0';scenes.forEach(restart);winterAudio.pause();loveAudio.pause();winterAudio.currentTime=0;loveAudio.currentTime=0;try{await sound.init()}catch{}sound.setMute(muted);keepAwake();setScene(0,true);cancelAnimationFrame(raf);raf=requestAnimationFrame(tick)}
-function finish(){cancelAnimationFrame(raf);sound.stop();winterAudio.pause();loveAudio.pause();releaseWake();state='epilogue';app.dataset.state='epilogue';film.setAttribute('aria-hidden','true');$('#epilogue').setAttribute('aria-hidden','false')}
-function toggleMute(){muted=!muted;sound.setMute(muted);winterAudio.muted=muted;loveAudio.muted=muted;mute.textContent=muted?'×':'◖';mute.setAttribute('aria-label',muted?'Включить звук':'Выключить звук')}
-function interrupt(){if(state!=='film'||paused)return;paused=true;waiting=true;releaseWake();sound.ctx?.suspend().catch(()=>{});winterAudio.pause();loveAudio.pause()}
-function showResume(){if(waiting&&state==='film')resume.classList.add('show')}
-async function continueFilm(){waiting=false;paused=false;last=performance.now();resume.classList.remove('show');if(sound.ctx?.state==='suspended')await sound.ctx.resume().catch(()=>{});keepAwake();const name=scenes[current]?.dataset.name;sceneSound(name);if(name==='winter'&&winterAudio.readyState>=2&&winterAudio.currentTime>0)winterAudio.play().catch(()=>{});if(name==='love'&&loveAudio.readyState>=2&&loveAudio.currentTime>0)loveAudio.play().catch(()=>{})}
+  const TELEMETRY_URL = "https://bosjlvrsgayngbcnzjzk.supabase.co/functions/v1/story-playtest";
+  const STORAGE_KEY = "between-stations-workprint-v1";
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-const debugMode=new URLSearchParams(location.search).get('debug')==='1',debug=$('#debug'),debugScene=$('#debugScene'),debugTime=$('#debugTime');
-function updateDebug(){if(!debugMode)return;debugScene.textContent=current>=0?`${current+1}/${scenes.length} ${scenes[current].dataset.name}`:'—';debugTime.textContent=`${elapsed.toFixed(1)} / ${total}s`}
-function seek(delta){if(state!=='film')return;const t=Math.max(0,Math.min(scenes.length-1,current+delta));elapsed=offsets[t]+.05;last=performance.now();fired.clear();winterAudio.pause();loveAudio.pause();setScene(t,true)}
-if(debugMode){debug.hidden=false;$('#prev').addEventListener('click',()=>seek(-1));$('#next').addEventListener('click',()=>seek(1))}
+  const ui = {
+    app: $("#app"), gate: $("#gate"), experience: $("#experience"), chapter: $("#chapter"),
+    objective: $("#objective"), twoCountries: $("#twoCountries"), dialogue: $("#dialogue"),
+    speaker: $("#speaker"), line: $("#line"), ticketTask: $("#ticketTask"), ticket: $("#ticket"),
+    scanner: $("#scanner"), bagTask: $("#bagTask"), bag: $("#bag"), bagTarget: $("#bagTarget"),
+    recLed: $("#recLed"), recorderPanel: $("#recorderPanel"), deviceState: $("#deviceState"),
+    deviceTime: $("#deviceTime"), controlHint: $("#controlHint"), soundCaption: $("#soundCaption"),
+    orderPuzzle: $("#orderPuzzle"), orderSlots: $("#orderSlots"), orderChoices: $("#orderChoices"),
+    checkOrder: $("#checkOrder"), orderResult: $("#orderResult"), recordingScene: $("#recordingScene"),
+    recordingText: $("#recordingText"), continueRecording: $("#continueRecording"), voiceMatch: $("#voiceMatch"),
+    workprintEnd: $("#workprintEnd"), choiceConsequence: $("#choiceConsequence"), motionWash: $("#motionWash"),
+    trainBackground: $("#trainBackground"), soundToggle: $("#soundToggle"),
+  };
 
-start.addEventListener('click',begin);replay.addEventListener('click',begin);mute.addEventListener('click',toggleMute);resumeBtn.addEventListener('click',continueFilm);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)interrupt();else showResume()});window.addEventListener('pagehide',interrupt);
+  const state = {
+    phase: "gate", sound: true, audio: null, master: null,
+    remoteAudio: null, controlStep: 0, order: [],
+    session: localStorage.getItem("story-session") || crypto.randomUUID(),
+  };
+  localStorage.setItem("story-session", state.session);
+
+  ui.trainBackground.src = ASSETS.train;
+  ui.bag.querySelector("img").src = ASSETS.bag;
+  ui.recorderPanel.querySelector("img").src = ASSETS.recorder;
+
+  function setPhase(phase) {
+    state.phase = phase;
+    ui.app.dataset.phase = phase;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ phase, sound: state.sound }));
+    logEvent("phase", { phase });
+  }
+
+  async function logEvent(event, detail = {}) {
+    if (!TELEMETRY_URL) return;
+    const payload = { session_id: state.session, event_name: event, scene: state.phase, detail };
+    try {
+      await fetch(TELEMETRY_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Story-Client": "between-stations-workprint-01",
+        },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+    } catch { /* logging never blocks the story */ }
+  }
+
+  function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+
+  async function ensureAudio() {
+    if (state.audio) {
+      if (state.audio.state === "suspended") await state.audio.resume();
+      return;
+    }
+    const Context = window.AudioContext || window.webkitAudioContext;
+    if (!Context) return;
+    state.audio = new Context();
+    state.master = state.audio.createGain();
+    state.master.gain.value = state.sound ? .72 : 0;
+    state.master.connect(state.audio.destination);
+  }
+
+  function tone(frequency, duration = .12, gain = .06, delay = 0, type = "sine") {
+    if (!state.audio || !state.master) return;
+    const t = state.audio.currentTime + delay;
+    const oscillator = state.audio.createOscillator();
+    const volume = state.audio.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, t);
+    volume.gain.setValueAtTime(.0001, t);
+    volume.gain.exponentialRampToValueAtTime(Math.max(.0002, gain), t + .012);
+    volume.gain.exponentialRampToValueAtTime(.0001, t + duration);
+    oscillator.connect(volume).connect(state.master);
+    oscillator.start(t);
+    oscillator.stop(t + duration + .03);
+  }
+
+  function noise(duration = .18, gain = .08, cutoff = 900, delay = 0) {
+    if (!state.audio || !state.master) return;
+    const length = Math.floor(state.audio.sampleRate * duration);
+    const buffer = state.audio.createBuffer(1, length, state.audio.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+    const source = state.audio.createBufferSource();
+    const filter = state.audio.createBiquadFilter();
+    const volume = state.audio.createGain();
+    filter.type = "lowpass";
+    filter.frequency.value = cutoff;
+    volume.gain.value = gain;
+    source.buffer = buffer;
+    source.connect(filter).connect(volume).connect(state.master);
+    source.start(state.audio.currentTime + delay);
+  }
+
+  function thump(delay = 0, gain = .13, pitch = 90) {
+    if (!state.audio || !state.master) return;
+    const t = state.audio.currentTime + delay;
+    const oscillator = state.audio.createOscillator();
+    const volume = state.audio.createGain();
+    oscillator.frequency.setValueAtTime(pitch, t);
+    oscillator.frequency.exponentialRampToValueAtTime(38, t + .16);
+    volume.gain.setValueAtTime(gain, t);
+    volume.gain.exponentialRampToValueAtTime(.0001, t + .2);
+    oscillator.connect(volume).connect(state.master);
+    oscillator.start(t);
+    oscillator.stop(t + .22);
+  }
+
+  function footstep(delay, gain, pitch) {
+    thump(delay, gain, pitch);
+    noise(.07, gain * .34, 520, delay);
+  }
+
+  async function caption(text, duration) {
+    ui.soundCaption.textContent = text;
+    ui.soundCaption.hidden = false;
+    await sleep(duration);
+    ui.soundCaption.hidden = true;
+  }
+
+  async function playEvidence() {
+    setPhase("evidence");
+    ui.recorderPanel.hidden = true;
+    ui.objective.textContent = "Слушай не направление, а порядок и изменение среды.";
+    noise(.35, .08, 1200);
+    thump(.32, .12, 115);
+    noise(.52, .06, 1700, .45);
+    await caption("[ткань · удар · скольжение]", 1200);
+
+    [0, .38, .82, 1.28, 1.76].forEach((delay, index) => footstep(delay, .1 - index * .014, 72 + index * 2));
+    await caption("[шаги становятся тише]", 2300);
+
+    [0, .42, .86, 1.28].forEach((delay, index) => footstep(delay, .044 + index * .018, 58));
+    await caption("[другая походка становится громче]", 1800);
+
+    thump(0, .18, 65);
+    noise(.32, .09, 460, .02);
+    await caption("[закрывается металлическая дверь]", 680);
+
+    for (let i = 0; i < 10; i += 1) thump(i * .28, .025 + i * .004, 42);
+    ui.motionWash.classList.add("active");
+    await caption("[поезд начинает движение]", 1450);
+    showOrderPuzzle();
+  }
+
+  async function begin(sound) {
+    state.sound = sound;
+    await ensureAudio();
+    if (state.master) state.master.gain.value = sound ? .72 : 0;
+    ui.soundToggle.textContent = sound ? "ЗВУК" : "БЕЗ ЗВУКА";
+    ui.soundToggle.setAttribute("aria-pressed", String(!sound));
+    ui.gate.hidden = true;
+    ui.experience.hidden = false;
+    setPhase("intro");
+    logEvent("start", { sound });
+    tone(520, .16, .035);
+    tone(780, .18, .025, .07);
+    await sleep(1500);
+    ui.twoCountries.classList.add("gone");
+    await runIntro();
+  }
+
+  async function showLine(speaker, line, duration = 1450) {
+    ui.speaker.textContent = speaker;
+    ui.line.textContent = line;
+    ui.dialogue.hidden = false;
+    tone(speaker === "ОН" ? 470 : 620, .07, .022);
+    await sleep(duration);
+    ui.dialogue.hidden = true;
+    await sleep(180);
+  }
+
+  async function runIntro() {
+    await showLine("ОН", "Ты ещё там?");
+    await showLine("ОНА", "Уже выхожу.");
+    await showLine("ОН", "У тебя «уже» обычно минут на десять.", 1750);
+    await showLine("ОНА", "Сегодня на восемь.");
+    showTicketTask();
+  }
+
+  function showTicketTask() {
+    setPhase("ticket");
+    ui.chapter.textContent = "01 · ПОСАДКА";
+    ui.objective.textContent = "Поднеси билет к сканеру у двери.";
+    ui.ticketTask.hidden = false;
+    makeDraggable(ui.ticket, ui.scanner, onTicketAccepted);
+  }
+
+  async function onTicketAccepted() {
+    ui.scanner.classList.add("accept");
+    ui.ticketTask.classList.add("success-flash");
+    tone(880, .11, .04);
+    tone(1174, .16, .025, .08);
+    await sleep(450);
+    ui.ticketTask.hidden = true;
+    ui.trainBackground.style.transform = "scale(1.1) translateY(-1.5%)";
+    noise(.52, .06, 520);
+    thump(.42, .12, 60);
+    await showLine("ОН", "Ты в вагоне?", 950);
+    await showLine("ОНА", "Да. Сумку поставлю — и всё.", 1350);
+    showBagTask();
+  }
+
+  function showBagTask() {
+    setPhase("bag-place");
+    ui.objective.textContent = "Поставь сумку у первой боковой полки.";
+    ui.bagTask.hidden = false;
+    makeDraggable(ui.bag, ui.bagTarget, onBagPlaced);
+  }
+
+  async function onBagPlaced() {
+    noise(.24, .05, 700);
+    thump(.12, .08, 75);
+    ui.bag.style.transform = "";
+    ui.bag.classList.add("settled");
+    ui.objective.textContent = "Под сумкой мигает слабый красный свет. Сдвинь её вправо.";
+    setPhase("bag-move");
+    makeSwipe(ui.bag, async () => {
+      ui.bag.style.transform = "translateX(42%) rotate(4deg)";
+      noise(.38, .045, 950);
+      await sleep(420);
+      ui.recLed.hidden = false;
+      setPhase("led");
+    });
+  }
+
+  async function revealRecorder() {
+    ui.recLed.hidden = true;
+    ui.bagTask.hidden = true;
+    thump(0, .06, 90);
+    tone(740, .14, .025, .08);
+    ui.objective.textContent = "Обычный диктофон. Красный индикатор всё ещё горит.";
+    ui.recorderPanel.hidden = false;
+    setPhase("recorder-controls");
+  }
+
+  async function deviceControl(control, button) {
+    if (control === "stop" && state.controlStep === 0) {
+      state.controlStep = 1;
+      button.classList.add("done");
+      button.disabled = true;
+      ui.deviceState.textContent = "STOP";
+      ui.controlHint.textContent = "Запись остановлена. Вернись на несколько секунд назад.";
+      $("[data-control='rew']").disabled = false;
+      thump(0, .04, 110);
+    } else if (control === "rew" && state.controlStep === 1) {
+      state.controlStep = 2;
+      button.classList.add("done");
+      button.disabled = true;
+      ui.deviceTime.textContent = "00:17:34";
+      ui.controlHint.textContent = "Теперь воспроизведи последние секунды.";
+      $("[data-control='play']").disabled = false;
+      [0, .08, .16, .24].forEach((delay, index) => tone(620 - index * 70, .04, .018, delay, "square"));
+    } else if (control === "play" && state.controlStep === 2) {
+      state.controlStep = 3;
+      button.classList.add("done");
+      button.disabled = true;
+      ui.deviceState.textContent = "PLAY";
+      ui.controlHint.textContent = "Воспроизведение";
+      logEvent("recorder_sequence_complete");
+      await sleep(300);
+      playEvidence();
+    }
+  }
+
+  const eventOptions = [
+    { id: "door", label: "Металлическая дверь" },
+    { id: "drop", label: "Удар и скольжение" },
+    { id: "enter", label: "Вторая походка усилилась" },
+    { id: "exit", label: "Первая походка затихла" },
+  ];
+  const answer = ["drop", "exit", "enter", "door"];
+
+  function showOrderPuzzle() {
+    setPhase("order");
+    ui.orderPuzzle.hidden = false;
+    ui.objective.textContent = "Собери только то, что действительно слышно.";
+    renderOrder();
+  }
+
+  function renderOrder() {
+    ui.orderSlots.innerHTML = "";
+    answer.forEach((_, index) => {
+      const slot = document.createElement("div");
+      slot.className = "order-slot";
+      const selected = eventOptions.find((item) => item.id === state.order[index]);
+      slot.innerHTML = `<b>${index + 1}</b><span>${selected ? selected.label : "—"}</span>`;
+      if (selected) slot.addEventListener("click", () => { state.order.splice(index, 1); renderOrder(); });
+      ui.orderSlots.append(slot);
+    });
+    ui.orderChoices.innerHTML = "";
+    eventOptions.forEach((item) => {
+      const button = document.createElement("button");
+      button.textContent = item.label;
+      button.disabled = state.order.includes(item.id);
+      button.addEventListener("click", () => {
+        if (state.order.length < 4) state.order.push(item.id);
+        renderOrder();
+      });
+      ui.orderChoices.append(button);
+    });
+    ui.checkOrder.disabled = state.order.length !== 4;
+  }
+
+  async function checkOrder() {
+    const correct = state.order.every((id, index) => id === answer[index]);
+    logEvent("order_attempt", { correct });
+    if (!correct) {
+      ui.orderPuzzle.classList.remove("wrong");
+      void ui.orderPuzzle.offsetWidth;
+      ui.orderPuzzle.classList.add("wrong");
+      ui.orderResult.textContent = "Не сходится. Слушай, что затихает, а что приближается.";
+      await sleep(900);
+      state.order = [];
+      renderOrder();
+      return;
+    }
+    ui.orderResult.textContent = "Сначала предмет. Потом один человек вышел. Другой вошёл позже.";
+    ui.checkOrder.disabled = true;
+    tone(520, .25, .03);
+    tone(660, .28, .025, .14);
+    tone(820, .32, .02, .28);
+    ui.orderPuzzle.hidden = true;
+    playRecordingScene();
+  }
+
+  async function playRemote(url) {
+    if (!url || !state.sound) return null;
+    try {
+      if (state.remoteAudio) state.remoteAudio.pause();
+      const audio = new Audio(url);
+      audio.volume = .88;
+      state.remoteAudio = audio;
+      await audio.play();
+      return audio;
+    } catch {
+      return null;
+    }
+  }
+
+  function waitForAudio(audio, fallbackMs) {
+    if (!audio) return sleep(fallbackMs);
+    return new Promise((resolve) => {
+      const timer = window.setTimeout(resolve, fallbackMs);
+      audio.addEventListener("ended", () => {
+        window.clearTimeout(timer);
+        resolve();
+      }, { once: true });
+    });
+  }
+
+  async function playRecordingScene() {
+    setPhase("recording");
+    ui.recordingScene.hidden = false;
+    ui.objective.textContent = "На записи есть голос.";
+    const parts = [
+      "Он пришёл за мной. На вокзал. Мой руководитель. Стоит у вагона.",
+      "Я не поеду. Сейчас выйду, вернусь внутрь и позвоню сто двенадцать.",
+    ];
+    ui.recordingText.textContent = `${parts[0]}\n\n${parts[1]}`;
+    const ownerAudio = await playRemote(ASSETS.ownerVoice);
+    await waitForAudio(ownerAudio, 10500);
+    ui.recordingText.textContent = "[мужской голос рядом] Нам надо договорить.";
+    const recordedVoice = await playRemote(ASSETS.manRecorded);
+    await waitForAudio(recordedVoice, 2600);
+    ui.continueRecording.hidden = false;
+  }
+
+  async function showVoiceMatch() {
+    ui.recordingScene.hidden = true;
+    ui.voiceMatch.hidden = false;
+    setPhase("voice-match");
+    ui.chapter.textContent = "02 · ТОТ ЖЕ ГОЛОС";
+    ui.objective.textContent = "Мужчина в коридоре говорит спокойно.";
+    playRemote(ASSETS.manLive);
+    await sleep(180);
+    await caption("[мужской голос за дверью] Ваш билет, пожалуйста.", 2600);
+  }
+
+  function finish(choice) {
+    logEvent("first_choice", { choice });
+    ui.voiceMatch.hidden = true;
+    ui.workprintEnd.hidden = false;
+    setPhase("end");
+    ui.choiceConsequence.textContent = choice === "hide"
+      ? "Она убирает устройство и идёт к проводнице. Безопасность раньше разгадки."
+      : "Она оставляет устройство на виду, но сама перемещается ближе к проводнице и людям.";
+    ui.objective.textContent = "Первая механика завершена.";
+  }
+
+  function makeDraggable(element, target, onSuccess) {
+    let active = false;
+    let startX = 0;
+    let startY = 0;
+    const down = (event) => {
+      active = true;
+      startX = event.clientX;
+      startY = event.clientY;
+      element.setPointerCapture(event.pointerId);
+      element.classList.add("dragging");
+    };
+    const move = (event) => {
+      if (!active) return;
+      element.style.transform = `translate(${event.clientX - startX}px, ${event.clientY - startY}px)`;
+    };
+    const up = async () => {
+      if (!active) return;
+      active = false;
+      element.classList.remove("dragging");
+      const a = element.getBoundingClientRect();
+      const b = target.getBoundingClientRect();
+      const overlap = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+        * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      if (overlap > Math.min(a.width * a.height, b.width * b.height) * .28) {
+        element.removeEventListener("pointerdown", down);
+        element.removeEventListener("pointermove", move);
+        element.removeEventListener("pointerup", up);
+        await onSuccess();
+      } else {
+        element.style.transform = "";
+        tone(180, .08, .025, 0, "square");
+      }
+    };
+    element.addEventListener("pointerdown", down);
+    element.addEventListener("pointermove", move);
+    element.addEventListener("pointerup", up);
+  }
+
+  function makeSwipe(element, onSuccess) {
+    let startX = 0;
+    let active = false;
+    const down = (event) => {
+      active = true;
+      startX = event.clientX;
+      element.setPointerCapture(event.pointerId);
+    };
+    const move = (event) => {
+      if (active) element.style.transform = `translateX(${Math.max(0, event.clientX - startX)}px)`;
+    };
+    const up = (event) => {
+      if (!active) return;
+      active = false;
+      if (event.clientX - startX > 72) {
+        element.removeEventListener("pointerdown", down);
+        element.removeEventListener("pointermove", move);
+        element.removeEventListener("pointerup", up);
+        onSuccess();
+      } else {
+        element.style.transform = "";
+      }
+    };
+    element.addEventListener("pointerdown", down);
+    element.addEventListener("pointermove", move);
+    element.addEventListener("pointerup", up);
+  }
+
+  $("#startSound").addEventListener("click", () => begin(true));
+  $("#startSilent").addEventListener("click", () => begin(false));
+  ui.soundToggle.addEventListener("click", async () => {
+    state.sound = !state.sound;
+    await ensureAudio();
+    if (state.master) state.master.gain.value = state.sound ? .72 : 0;
+    ui.soundToggle.textContent = state.sound ? "ЗВУК" : "БЕЗ ЗВУКА";
+    ui.soundToggle.setAttribute("aria-pressed", String(!state.sound));
+    logEvent("sound_toggle", { sound: state.sound });
+  });
+  ui.recLed.addEventListener("click", revealRecorder);
+  $$("[data-control]").forEach((button) => button.addEventListener("click", () => deviceControl(button.dataset.control, button)));
+  ui.checkOrder.addEventListener("click", checkOrder);
+  ui.continueRecording.addEventListener("click", showVoiceMatch);
+  $$("[data-final-choice]").forEach((button) => button.addEventListener("click", () => finish(button.dataset.finalChoice)));
+  $("#restart").addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  });
 })();

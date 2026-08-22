@@ -1,9 +1,10 @@
 {
-  "name": "Место, которого нет",
-  "short_name": "История",
-  "description": "Одна история для одного человека.",
-  "start_url": "./",
+  "name": "Между станциями",
+  "short_name": "Между станциями",
+  "lang": "ru",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#050609",
-  "theme_color": "#050609"
+  "background_color": "#090b0c",
+  "theme_color": "#090b0c",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
 }
