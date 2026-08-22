@@ -93,6 +93,18 @@
           <button id="playEvidenceButton" type="button" class="primary">Прослушать запись</button>
         </section>
 
+        <section id="evidencePlayback" class="evidence-playback" hidden aria-label="Диктофон воспроизводит запись">
+          <p class="playback-kicker">ДИКТОФОН · ФАЙЛ 0046</p>
+          <div class="playback-recorder">
+            <img id="evidenceRecorderImage" alt="Диктофон воспроизводит найденную запись">
+            <i class="playback-led"></i>
+          </div>
+          <div class="playback-wave" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <p id="evidencePlaybackStep" class="playback-step">PLAY · ЗАПИСЬ ИДЁТ</p>
+        </section>
+
         <div id="soundCaption" class="sound-caption" hidden></div>
 
         <section id="orderPuzzle" class="order-puzzle" hidden>
@@ -108,30 +120,47 @@
           <p id="orderResult" class="order-result"></p>
         </section>
 
+        <section id="deductionScene" class="deduction-scene" hidden>
+          <p class="puzzle-kicker">ЧТО УЖЕ ИЗВЕСТНО</p>
+          <h2>Диктофон остался в вагоне после своей хозяйки.</h2>
+          <ol class="deduction-list">
+            <li><b>1</b><span>Небольшой предмет упал и проскользнул под полку.</span></li>
+            <li><b>2</b><span>Один человек вышел из вагона.</span></li>
+            <li><b>3</b><span>Другой вошёл позже, перед самым отправлением.</span></li>
+          </ol>
+          <p>Последний голосовой файл может объяснить, почему хозяйка диктофона ушла.</p>
+          <button id="openLastFile" type="button" class="primary">Открыть последний файл</button>
+        </section>
+
         <section id="recordingScene" class="recording-scene" hidden>
           <p class="recording-label">ПОСЛЕДНИЙ ФАЙЛ · 00:46</p>
+          <p id="recordingSpeaker" class="recording-speaker"></p>
           <div class="waveform" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
           <blockquote id="recordingText"></blockquote>
-          <button id="continueRecording" class="primary" hidden>Слушать дальше</button>
+          <button id="continueRecording" type="button" class="primary" hidden>Закрыть файл и слушать коридор</button>
         </section>
 
         <section id="voiceMatch" class="voice-match" hidden>
-          <p>Кто-то останавливается в коридоре.</p>
+          <p>Сразу после окончания файла кто-то останавливается за дверью.</p>
           <div class="voice-lines">
-            <span>НА ЗАПИСИ</span><i></i><span>ЗА ДВЕРЬЮ</span>
+            <span><small>НА ЗАПИСИ</small>«Нам надо договорить»</span>
+            <i></i>
+            <span><small>ЗА ДВЕРЬЮ</small>«Ваш билет, пожалуйста»</span>
           </div>
-          <h2>Тот же голос?</h2>
-          <div class="choice-row">
-            <button data-final-choice="hide">Убрать диктофон</button>
-            <button data-final-choice="keep">Оставить на виду</button>
+          <h2>Голос с записи теперь за дверью.</h2>
+          <p class="voice-warning">Она не открывает. До проводницы и других пассажиров — несколько метров.</p>
+          <div id="voiceChoices" class="choice-row" hidden>
+            <button type="button" data-final-choice="hide">Убрать диктофон и выйти к проводнице</button>
+            <button type="button" data-final-choice="keep">Оставить диктофон и выйти к людям</button>
           </div>
         </section>
 
         <section id="workprintEnd" class="workprint-end" hidden>
-          <small>КОНЕЦ ПЕРВОГО ИГРОВОГО ФРАГМЕНТА</small>
-          <h2>Противоречие замечено.<br>Разгадка ещё впереди.</h2>
+          <small>ЧТО ПРОИЗОШЛО</small>
+          <h2>Хозяйка диктофона ушла. Мужчина сел в поезд после неё.</h2>
           <p id="choiceConsequence"></p>
-          <button id="restart" class="quiet light">Пройти ещё раз</button>
+          <p class="next-question">Но зачем он вошёл в вагон — и как диктофон оказался именно под её сумкой?</p>
+          <button id="restart" type="button" class="primary">Начать сначала</button>
         </section>
       </div>
 
