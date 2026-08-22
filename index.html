@@ -18,6 +18,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://cdn.creativeclaw.co" crossorigin>
+  <link rel="preload" as="image" href="https://cdn.creativeclaw.co/u/ce56d390/images/ab532e04-bbfd-45e6-b8af-2e51503cf064.webp" crossorigin>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -70,6 +71,10 @@
 
         <div id="bagTask" class="task-layer" hidden>
           <button id="bag" class="bag" aria-label="Поставить сумку на нижнюю полку"><img alt="Тёмная рабочая сумка"></button>
+          <button id="recorderFind" class="recorder-find" aria-label="Поднять найденный диктофон" hidden>
+            <img alt="Маленький диктофон под полкой">
+            <i aria-hidden="true"></i>
+          </button>
         </div>
 
         <section id="recorderPanel" class="recorder-panel" hidden aria-label="Найденный диктофон">
@@ -118,6 +123,39 @@
           </div>
           <p id="choiceConsequence"></p>
           <p class="next-question">За спиной мужчина ещё раз нажимает на ручку двери.</p>
+          <button id="continueChapter" type="button" class="primary">Дойти до проводницы</button>
+        </section>
+
+        <section id="handoffScene" class="handoff-scene" hidden>
+          <p class="scene-kicker">СЛУЖЕБНОЕ КУПЕ</p>
+          <h2>Покажи проводнице, что ты нашла.</h2>
+          <button id="handoffRecorder" class="handoff-recorder" type="button" aria-label="Передать диктофон проводнице">
+            <img alt="Диктофон в руке">
+            <span>ПЕРЕДАТЬ</span>
+          </button>
+        </section>
+
+        <section id="archiveScene" class="archive-scene" hidden>
+          <p class="scene-kicker">ПАМЯТЬ ДИКТОФОНА</p>
+          <h2>Перед последним файлом есть ещё один.</h2>
+          <div class="file-list">
+            <button id="file45" type="button">
+              <span><b>0045</b><small>23:38 · 00:08</small></span>
+              <i>PLAY</i>
+            </button>
+            <div class="file-heard"><span><b>0046</b><small>23:46 · 00:46</small></span><i>ПРОСЛУШАНО</i></div>
+          </div>
+          <div id="file45Playback" class="file-playback" hidden>
+            <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <p id="file45Transcript">[офисный шум]</p>
+          </div>
+          <button id="closeFile45" type="button" class="primary" hidden>Закрыть файл</button>
+        </section>
+
+        <section id="chapterTwoEnd" class="chapter-two-end" hidden>
+          <small>КОНЕЦ ВТОРОГО ФРАГМЕНТА</small>
+          <h2>Проводница запирает служебную дверь и вызывает начальника поезда.</h2>
+          <p>В коридоре снова тихо. На диктофоне осталось ещё двенадцать файлов.</p>
           <button id="restart" type="button" class="primary">Начать сначала</button>
         </section>
       </div>
