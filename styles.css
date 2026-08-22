@@ -94,7 +94,7 @@ button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
 .sound-toggle { min-height: 36px; padding: 0 4px; border: 0; border-bottom: 1px solid rgba(230, 226, 216, .32); background: transparent; color: rgba(230, 226, 216, .64); font-size: 9px; font-weight: 750; letter-spacing: .15em; }
 
 .stage { position: relative; min-height: 0; overflow: hidden; isolation: isolate; }
-.train-background { position: absolute; inset: -2%; width: 104%; height: 104%; z-index: -4; object-fit: cover; filter: saturate(.72) contrast(1.08) brightness(.7); transform: scale(1.025); transition: transform 1.4s cubic-bezier(.2,.8,.2,1), filter .8s ease; }
+.train-background { position: absolute; inset: -2%; width: 104%; height: 104%; z-index: -4; object-fit: cover; filter: saturate(.72) contrast(1.08) brightness(.7); transform: scale(1.025); transition: transform 1.4s cubic-bezier(.2,.8,.2,1), filter .8s ease, opacity .36s ease; }
 .stage-vignette { position: absolute; inset: 0; z-index: -3; pointer-events: none; background: radial-gradient(circle at 54% 43%, transparent 12%, rgba(3, 4, 5, .2) 46%, rgba(3, 4, 5, .82) 100%), linear-gradient(180deg, rgba(4,5,6,.16), transparent 45%, rgba(4,5,6,.76)); }
 .motion-wash { position: absolute; inset: 0; z-index: -2; opacity: 0; pointer-events: none; background: repeating-linear-gradient(90deg, rgba(230,226,216,.02) 0 3px, transparent 3px 17px); }
 .motion-wash.active { opacity: 1; animation: railMotion .28s linear infinite; }
@@ -128,11 +128,15 @@ button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
 .ticket b { align-self: center; font-size: 12px; letter-spacing: .18em; }
 .ticket i { height: 18px; opacity: .36; background: repeating-linear-gradient(90deg,#111 0 2px,transparent 2px 4px); }
 
-.bag { position: absolute; right: 5%; bottom: 12%; width: 42%; padding: 0; border: 0; background: transparent; cursor: pointer; touch-action: manipulation; filter: drop-shadow(0 15px 16px rgba(0,0,0,.46)); transition: right .7s cubic-bezier(.2,.75,.2,1), bottom .7s cubic-bezier(.2,.75,.2,1), transform .7s cubic-bezier(.2,.75,.2,1), filter .35s ease; animation: bagInvite 1.8s ease-in-out infinite; }
+.bag { position: absolute; right: 5%; bottom: 12%; z-index: 15; width: 42%; padding: 0; border: 0; background: transparent; cursor: pointer; touch-action: manipulation; filter: drop-shadow(0 15px 16px rgba(0,0,0,.46)); transition: right .7s cubic-bezier(.2,.75,.2,1), bottom .7s cubic-bezier(.2,.75,.2,1), transform .7s cubic-bezier(.2,.75,.2,1), filter .35s ease; animation: bagInvite 1.8s ease-in-out infinite; }
 .bag img { display: block; width: 100%; pointer-events: none; }
 .bag.settled { right: 52%; bottom: 3%; transform: translateX(50%) scale(.92); animation: none; }
-.bag.settled::after { position: absolute; right: 42%; bottom: 4%; width: 9px; height: 5px; border-radius: 50%; background: #e04a3f; box-shadow: 0 0 20px 7px rgba(224,74,63,.68); content: ""; animation: blink 1.05s ease-in-out infinite; }
 .bag.moved-aside { right: 3%; bottom: 3%; transform: rotate(5deg) scale(.86); }
+.recorder-find { position: absolute; right: 45%; bottom: 4%; z-index: 12; width: 38px; height: 72px; padding: 0; border: 0; background: transparent; cursor: pointer; opacity: .62; transform: rotate(-8deg) scale(.84); touch-action: manipulation; transition: right .6s ease, bottom .6s ease, width .6s ease, height .6s ease, opacity .35s ease, transform .6s ease, filter .35s ease; }
+.recorder-find img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 7px 8px rgba(0,0,0,.58)); pointer-events: none; }
+.recorder-find > i { position: absolute; top: 17%; left: 49%; width: 5px; height: 5px; border-radius: 50%; background: #e04a3f; box-shadow: 0 0 14px 5px rgba(224,74,63,.72); animation: blink 1.05s ease-in-out infinite; }
+.recorder-find.revealed { z-index: 18; opacity: 1; transform: rotate(-4deg) scale(1); animation: foundDevice 1.5s ease-in-out infinite; }
+.recorder-find.picked-up { right: 50%; bottom: 50%; width: 150px; height: 300px; opacity: 1; transform: translate(50%,50%) rotate(0) scale(1); filter: drop-shadow(0 30px 35px rgba(0,0,0,.72)); animation: none; }
 
 .recorder-panel { position: absolute; inset: 5% 7% 6%; z-index: 30; display: grid; grid-template-rows: minmax(0,1fr) auto auto auto; padding: 18px; border: 1px solid rgba(230,226,216,.22); background: rgba(6,8,9,.94); backdrop-filter: blur(12px); animation: panelIn .55s cubic-bezier(.2,.75,.2,1) both; }
 .recorder-object { position: relative; display: grid; min-height: 0; place-items: center; }
@@ -150,7 +154,7 @@ button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
 .recorder-panel > p { margin: 12px 0 0; color: rgba(230,226,216,.55); font-size: 10px; text-align: center; }
 
 .sound-caption { position: absolute; right: 14px; bottom: 17px; left: 14px; z-index: 65; padding: 12px 14px; border: 1px solid rgba(211,152,98,.38); background: rgba(5,7,8,.94); box-shadow: 0 8px 28px rgba(0,0,0,.34); font-family: Georgia, serif; font-size: 14px; text-align: center; animation: rise .25s ease both; }
-.recording-scene, .voice-match, .workprint-end { position: absolute; inset: 0; z-index: 50; overflow: auto; padding: 26px 20px 24px; background: rgba(7,9,10,.95); backdrop-filter: blur(10px); animation: fadeIn .45s ease both; }
+.recording-scene, .voice-match, .workprint-end, .handoff-scene, .archive-scene, .chapter-two-end { position: absolute; inset: 0; z-index: 50; overflow: auto; padding: 26px 20px 24px; background: rgba(7,9,10,.95); backdrop-filter: blur(10px); animation: fadeIn .45s ease both; }
 .evidence-briefing { display: flex; flex-direction: column; justify-content: center; }
 .evidence-briefing h2 { margin: 12px 0 18px; font-family: Georgia, serif; font-size: clamp(30px,9vw,44px); font-weight: 400; line-height: 1.05; }
 .evidence-briefing > p:not(.puzzle-kicker) { margin: 0 0 28px; color: rgba(230,226,216,.68); font-family: Georgia, serif; font-size: 16px; line-height: 1.55; }
@@ -214,6 +218,34 @@ button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
 .end-call p { display: grid; grid-template-columns: 38px 1fr; gap: 10px; margin: 0; padding: 10px 12px; border-left: 1px solid rgba(211,152,98,.48); background: rgba(230,226,216,.035); }
 .end-call b { color: var(--warm); font-family: ui-sans-serif,system-ui,sans-serif; font-size: 8px; letter-spacing: .16em; }
 
+.handoff-scene { display: flex; flex-direction: column; justify-content: flex-end; padding-top: 34%; background: linear-gradient(180deg,rgba(7,9,10,.22),rgba(7,9,10,.88) 46%,rgba(7,9,10,.98)); backdrop-filter: blur(2px); }
+.scene-kicker, .chapter-two-end small { margin: 0; color: var(--warm); font-size: 8px; font-weight: 850; letter-spacing: .19em; }
+.handoff-scene h2, .archive-scene h2, .chapter-two-end h2 { margin: 12px 0 22px; font-family: Georgia,serif; font-size: clamp(28px,8vw,40px); font-weight: 400; line-height: 1.08; }
+.handoff-recorder { position: relative; display: grid; width: 100%; min-height: 150px; grid-template-columns: 100px 1fr; align-items: center; padding: 14px 24px; border: 1px solid rgba(211,152,98,.44); background: rgba(211,152,98,.08); cursor: pointer; overflow: hidden; transition: transform .5s ease, opacity .45s ease, background .2s ease; }
+.handoff-recorder img { width: 88px; max-height: 130px; object-fit: contain; filter: drop-shadow(0 16px 18px rgba(0,0,0,.6)); }
+.handoff-recorder span { color: #efc39b; font-size: 9px; font-weight: 850; letter-spacing: .18em; }
+.handoff-recorder.passed { opacity: 0; transform: translateY(-34px) scale(.88); }
+
+.archive-scene { display: flex; flex-direction: column; justify-content: center; }
+.file-list { display: grid; gap: 7px; margin-bottom: 18px; }
+.file-list button, .file-heard { display: flex; min-height: 66px; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid rgba(230,226,216,.16); background: rgba(230,226,216,.035); color: var(--paper); text-align: left; }
+.file-list button { border-color: rgba(211,152,98,.52); cursor: pointer; animation: controlPulse 1.6s ease-in-out infinite; }
+.file-list span { display: grid; gap: 5px; }
+.file-list b { font-family: ui-monospace,monospace; font-size: 16px; letter-spacing: .12em; }
+.file-list small { color: rgba(230,226,216,.5); font-size: 8px; letter-spacing: .12em; }
+.file-list i { color: var(--warm); font-size: 8px; font-style: normal; font-weight: 850; letter-spacing: .14em; }
+.file-heard { opacity: .46; }
+.file-list button.playing { animation: none; border-color: var(--green); }
+.file-playback { margin: 2px 0 18px; padding: 14px; border-left: 1px solid var(--warm); background: rgba(0,0,0,.18); }
+.file-playback p { min-height: 24px; margin: 8px 0 0; font-family: Georgia,serif; font-size: 15px; }
+.mini-wave { display: flex; height: 32px; align-items: center; gap: 4px; }
+.mini-wave i { width: 2px; height: 9px; background: var(--warm); animation: pulse .52s ease-in-out infinite alternate; }
+.mini-wave i:nth-child(2n) { animation-delay: -.22s; }
+.mini-wave i:nth-child(3n) { animation-delay: -.38s; }
+
+.chapter-two-end { display: flex; flex-direction: column; justify-content: center; text-align: center; }
+.chapter-two-end p { margin: 0 0 24px; color: rgba(230,226,216,.65); font-family: Georgia,serif; font-size: 15px; line-height: 1.55; }
+
 .action-rail { position: relative; z-index: 70; min-height: 72px; padding: 10px 18px max(10px,env(safe-area-inset-bottom)); border-top: 1px solid rgba(230,226,216,.12); background: rgba(7,9,10,.96); }
 .action-rail > p { margin: 0 0 8px; color: rgba(230,226,216,.74); font-family: Georgia,serif; font-size: 13px; }
 .call-state { display: flex; align-items: center; gap: 7px; color: rgba(230,226,216,.38); font-size: 7px; letter-spacing: .15em; }
@@ -233,6 +265,7 @@ button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
 @keyframes controlPulse { 50% { box-shadow: inset 0 0 0 1px rgba(211,152,98,.38), 0 0 25px rgba(211,152,98,.22); } }
 @keyframes recorderPlay { 50% { transform: translateY(-3px); filter: drop-shadow(0 28px 38px rgba(0,0,0,.68)) brightness(1.05); } }
 @keyframes bagInvite { 50% { transform: translateY(-4px); filter: drop-shadow(0 21px 20px rgba(0,0,0,.58)) brightness(1.06); } }
+@keyframes foundDevice { 50% { transform: rotate(-4deg) translateY(-3px); filter: brightness(1.08); } }
 
 @media (min-width: 700px) {
   body { padding: 20px 0; overflow: auto; }
