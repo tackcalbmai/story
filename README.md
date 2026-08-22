@@ -16,3 +16,7 @@
 ## Статус
 
 Это проверочная первая сцена, не финальная игра. Визуальные материалы и голоса временные до утверждения storyboard и animatic.
+
+Текущая архитектура, CreativeClaw Character ID, asset registry, Supabase и deployment state зафиксированы в [`PRODUCTION_STATE.md`](./PRODUCTION_STATE.md), чтобы следующий этап не зависел от истории чата.
+
+> Важно: Vercel production сейчас обновляется из `main`, но домен Vercel находится под Deployment Protection/SSO. Старый адрес ChatGPT Sites — отдельный хост и не обновляется автоматически из этого репозитория.
