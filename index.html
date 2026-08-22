@@ -58,6 +58,7 @@
         <div id="dialogue" class="dialogue" hidden>
           <span id="speaker"></span>
           <p id="line"></p>
+          <button id="dialogueNext" type="button">Дальше</button>
         </div>
 
         <div id="ticketTask" class="task-layer" hidden>
@@ -85,14 +86,25 @@
           <p id="controlHint">Шаг 1 из 3 · Нажми STOP.</p>
         </section>
 
+        <section id="evidenceBriefing" class="evidence-briefing" hidden>
+          <p class="puzzle-kicker">ПЕРЕД ПРОСЛУШИВАНИЕМ</p>
+          <h2>В записи слышны четыре события.</h2>
+          <p>Важно не направление звука, а порядок: что произошло сначала и что — потом. Запись можно переслушивать сколько угодно.</p>
+          <button id="playEvidenceButton" type="button" class="primary">Прослушать запись</button>
+        </section>
+
         <div id="soundCaption" class="sound-caption" hidden></div>
 
         <section id="orderPuzzle" class="order-puzzle" hidden>
           <p class="puzzle-kicker">ЗАПИСЬ НЕ ПОКАЗЫВАЕТ НАПРАВЛЕНИЕ</p>
           <h2>Что произошло до отправления?</h2>
+          <p class="puzzle-note">Выбери события в том порядке, в котором они звучали. Если сомневаешься — переслушай запись.</p>
           <div id="orderSlots" class="order-slots" aria-label="Собранный порядок"></div>
           <div id="orderChoices" class="order-choices"></div>
-          <button id="checkOrder" class="primary" disabled>Проверить</button>
+          <div class="puzzle-actions">
+            <button id="replayEvidence" type="button" class="quiet light">Прослушать ещё раз</button>
+            <button id="checkOrder" type="button" class="primary" disabled>Проверить</button>
+          </div>
           <p id="orderResult" class="order-result"></p>
         </section>
 
