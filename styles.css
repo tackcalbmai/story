@@ -144,8 +144,10 @@ button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
 .device-display span { font-size: 10px; }
 .device-display b { font-size: 18px; font-weight: 500; letter-spacing: .08em; }
 .device-controls { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-top: 13px; }
-.device-controls button { min-height: 50px; border: 1px solid rgba(230,226,216,.24); background: #171a1b; font-size: 9px; font-weight: 800; letter-spacing: .12em; }
-.device-controls button:disabled { opacity: .25; }
+.device-controls button { position: relative; min-height: 54px; border: 1px solid rgba(230,226,216,.24); background: #171a1b; cursor: pointer; font-size: 9px; font-weight: 800; letter-spacing: .12em; touch-action: manipulation; transition: border-color .2s ease, color .2s ease, opacity .2s ease, transform .12s ease, box-shadow .2s ease; }
+.device-controls button:active { transform: translateY(1px) scale(.98); }
+.device-controls button.future { opacity: .42; }
+.device-controls button.next { border-color: var(--warm); color: #f0b47f; box-shadow: inset 0 0 0 1px rgba(211,152,98,.24), 0 0 18px rgba(211,152,98,.12); animation: controlPulse 1.5s ease-in-out infinite; }
 .device-controls button.done { border-color: var(--green); color: var(--green); }
 .recorder-panel > p { margin: 12px 0 0; color: rgba(230,226,216,.55); font-size: 10px; text-align: center; }
 
@@ -160,7 +162,7 @@ button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
 .order-choices button, .choice-row button { min-height: 50px; padding: 10px; border: 1px solid rgba(230,226,216,.24); background: rgba(230,226,216,.05); font-size: 9px; line-height: 1.35; }
 .order-choices button:disabled { opacity: .2; }
 .order-result { min-height: 20px; margin: 12px 0 0; color: rgba(230,226,216,.62); font-size: 10px; text-align: center; }
-.order-puzzle.wrong { animation: shake .35s ease; }
+.order-puzzle.wrong, .recorder-panel.wrong { animation: shake .35s ease; }
 
 .recording-scene { display: flex; flex-direction: column; justify-content: center; }
 .waveform { display: flex; height: 90px; align-items: center; justify-content: center; gap: 6px; margin: 28px 0; }
@@ -194,6 +196,7 @@ button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
 @keyframes railMotion { to { transform: translateX(17px); } }
 @keyframes shake { 25% { transform: translateX(-7px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
 @keyframes success { 50% { filter: brightness(1.6); } }
+@keyframes controlPulse { 50% { box-shadow: inset 0 0 0 1px rgba(211,152,98,.38), 0 0 25px rgba(211,152,98,.22); } }
 
 @media (min-width: 700px) {
   body { padding: 20px 0; overflow: auto; }
