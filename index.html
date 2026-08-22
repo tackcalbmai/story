@@ -58,7 +58,7 @@
         <div id="dialogue" class="dialogue" hidden>
           <span id="speaker"></span>
           <p id="line"></p>
-          <button id="dialogueNext" type="button">Дальше</button>
+          <button id="dialogueNext" class="dialogue-next" type="button">Дальше</button>
         </div>
 
         <div id="ticketTask" class="task-layer" hidden>
@@ -69,8 +69,14 @@
         </div>
 
         <div id="bagTask" class="task-layer" hidden>
-          <div id="bagTarget" class="bag-target"><span>ПОСТАВЬ СУМКУ</span></div>
+          <div id="bagTarget" class="bag-target" aria-hidden="true">
+            <i></i><span><small>СВОБОДНОЕ МЕСТО</small>Поставь сумку на нижнюю полку</span>
+          </div>
           <button id="bag" class="bag" aria-label="Перетащить сумку"><img alt="Тёмная рабочая сумка"></button>
+          <div id="bagMoveCue" class="bag-move-cue" hidden>
+            <b>Под сумкой мигает свет</b>
+            <span>Сдвинь её вправо <i>→</i></span>
+          </div>
         </div>
 
         <button id="recLed" class="rec-led" hidden aria-label="Красный индикатор под полкой"><i></i><span>Что это?</span></button>
@@ -86,80 +92,42 @@
           <p id="controlHint">Шаг 1 из 3 · Нажми STOP.</p>
         </section>
 
-        <section id="evidenceBriefing" class="evidence-briefing" hidden>
-          <p class="puzzle-kicker">ПЕРЕД ПРОСЛУШИВАНИЕМ</p>
-          <h2>В записи слышны четыре события.</h2>
-          <p>Важно не направление звука, а порядок: что произошло сначала и что — потом. Запись можно переслушивать сколько угодно.</p>
-          <button id="playEvidenceButton" type="button" class="primary">Прослушать запись</button>
-        </section>
-
-        <section id="evidencePlayback" class="evidence-playback" hidden aria-label="Диктофон воспроизводит запись">
-          <p class="playback-kicker">ДИКТОФОН · ФАЙЛ 0046</p>
-          <div class="playback-recorder">
-            <img id="evidenceRecorderImage" alt="Диктофон воспроизводит найденную запись">
-            <i class="playback-led"></i>
-          </div>
-          <div class="playback-wave" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
-          <p id="evidencePlaybackStep" class="playback-step">PLAY · ЗАПИСЬ ИДЁТ</p>
-        </section>
-
-        <div id="soundCaption" class="sound-caption" hidden></div>
-
-        <section id="orderPuzzle" class="order-puzzle" hidden>
-          <p class="puzzle-kicker">ЗАПИСЬ НЕ ПОКАЗЫВАЕТ НАПРАВЛЕНИЕ</p>
-          <h2>Что произошло до отправления?</h2>
-          <p class="puzzle-note">Выбери события в том порядке, в котором они звучали. Если сомневаешься — переслушай запись.</p>
-          <div id="orderSlots" class="order-slots" aria-label="Собранный порядок"></div>
-          <div id="orderChoices" class="order-choices"></div>
-          <div class="puzzle-actions">
-            <button id="replayEvidence" type="button" class="quiet light">Прослушать ещё раз</button>
-            <button id="checkOrder" type="button" class="primary" disabled>Проверить</button>
-          </div>
-          <p id="orderResult" class="order-result"></p>
-        </section>
-
-        <section id="deductionScene" class="deduction-scene" hidden>
-          <p class="puzzle-kicker">ЧТО УЖЕ ИЗВЕСТНО</p>
-          <h2>Диктофон остался в вагоне после своей хозяйки.</h2>
-          <ol class="deduction-list">
-            <li><b>1</b><span>Небольшой предмет упал и проскользнул под полку.</span></li>
-            <li><b>2</b><span>Один человек вышел из вагона.</span></li>
-            <li><b>3</b><span>Другой вошёл позже, перед самым отправлением.</span></li>
-          </ol>
-          <p>Последний голосовой файл может объяснить, почему хозяйка диктофона ушла.</p>
-          <button id="openLastFile" type="button" class="primary">Открыть последний файл</button>
-        </section>
-
         <section id="recordingScene" class="recording-scene" hidden>
           <p class="recording-label">ПОСЛЕДНИЙ ФАЙЛ · 00:46</p>
+          <div class="recording-device">
+            <img id="recordingRecorderImage" alt="Найденный диктофон воспроизводит последний файл">
+            <i></i><span>PLAY</span>
+          </div>
           <p id="recordingSpeaker" class="recording-speaker"></p>
           <div class="waveform" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
           <blockquote id="recordingText"></blockquote>
-          <button id="continueRecording" type="button" class="primary" hidden>Закрыть файл и слушать коридор</button>
+          <button id="continueRecording" type="button" class="primary" hidden>Поднять глаза от диктофона</button>
         </section>
 
         <section id="voiceMatch" class="voice-match" hidden>
-          <p>Сразу после окончания файла кто-то останавливается за дверью.</p>
+          <div class="door-signal" aria-hidden="true"><i></i><span>ДАЛЬНЯЯ ДВЕРЬ · ТАМБУР</span></div>
+          <p>У дальней двери тамбура останавливаются шаги. За матовым стеклом виден силуэт.</p>
           <div class="voice-lines">
             <span><small>НА ЗАПИСИ</small>«Нам надо договорить»</span>
             <i></i>
-            <span><small>ЗА ДВЕРЬЮ</small>«Ваш билет, пожалуйста»</span>
+            <span><small>ЗА СТЕКЛОМ</small>«Ваш билет, пожалуйста»</span>
           </div>
-          <h2>Голос с записи теперь за дверью.</h2>
-          <p class="voice-warning">Она не открывает. До проводницы и других пассажиров — несколько метров.</p>
+          <h2>Тот же голос. Теперь — в этом вагоне.</h2>
+          <p class="voice-warning">Она стоит в коридоре. Тамбур — впереди; проводница и пассажиры — за её спиной.</p>
           <div id="voiceChoices" class="choice-row" hidden>
-            <button type="button" data-final-choice="hide">Убрать диктофон и выйти к проводнице</button>
-            <button type="button" data-final-choice="keep">Оставить диктофон и выйти к людям</button>
+            <button type="button" data-final-choice="retreat">Не подходить к двери. Идти к проводнице</button>
           </div>
         </section>
 
         <section id="workprintEnd" class="workprint-end" hidden>
-          <small>ЧТО ПРОИЗОШЛО</small>
-          <h2>Хозяйка диктофона ушла. Мужчина сел в поезд после неё.</h2>
+          <small>КОНЕЦ ПЕРВОГО ФРАГМЕНТА</small>
+          <h2>Она отступает от тамбура, не выпуская телефон из руки.</h2>
+          <div class="end-call">
+            <p><b>ОН</b>Не клади трубку.</p>
+            <p><b>ОНА</b>Не кладу.</p>
+          </div>
           <p id="choiceConsequence"></p>
-          <p class="next-question">Но зачем он вошёл в вагон — и как диктофон оказался именно под её сумкой?</p>
+          <p class="next-question">За спиной мужчина ещё раз нажимает на ручку двери.</p>
           <button id="restart" type="button" class="primary">Начать сначала</button>
         </section>
       </div>
