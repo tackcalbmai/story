@@ -20,9 +20,8 @@
     objective: $("#objective"), twoCountries: $("#twoCountries"), dialogue: $("#dialogue"),
     speaker: $("#speaker"), line: $("#line"), dialogueNext: $("#dialogueNext"),
     ticketTask: $("#ticketTask"), ticket: $("#ticket"),
-    scanner: $("#scanner"), bagTask: $("#bagTask"), bag: $("#bag"), bagTarget: $("#bagTarget"),
-    bagMoveCue: $("#bagMoveCue"),
-    recLed: $("#recLed"), recorderPanel: $("#recorderPanel"), deviceState: $("#deviceState"),
+    scanner: $("#scanner"), bagTask: $("#bagTask"), bag: $("#bag"),
+    recorderPanel: $("#recorderPanel"), deviceState: $("#deviceState"),
     deviceTime: $("#deviceTime"), controlHint: $("#controlHint"), soundCaption: $("#soundCaption"),
     recordingScene: $("#recordingScene"), recordingRecorderImage: $("#recordingRecorderImage"),
     recordingSpeaker: $("#recordingSpeaker"), recordingText: $("#recordingText"),
@@ -203,32 +202,25 @@
 
   function showBagTask() {
     setPhase("bag-place");
-    ui.objective.textContent = "Поставь сумку у первой боковой полки.";
+    ui.objective.textContent = "Коснись сумки, чтобы поставить её на нижнюю полку.";
     ui.bagTask.hidden = false;
-    makeDraggable(ui.bag, ui.bagTarget, onBagPlaced);
+    ui.bag.addEventListener("click", onBagPlaced, { once: true });
   }
 
   async function onBagPlaced() {
     noise(.24, .05, 700);
     thump(.12, .08, 75);
-    ui.bag.style.transform = "";
     ui.bag.classList.add("settled");
-    ui.bagTarget.classList.add("placed");
-    ui.bagMoveCue.hidden = false;
-    ui.objective.textContent = "Под сумкой мигает слабый красный свет.";
+    ui.bag.setAttribute("aria-label", "Отодвинуть сумку и посмотреть, что под ней");
+    ui.objective.textContent = "Под сумкой мигает красный свет. Коснись её ещё раз.";
     setPhase("bag-move");
-    makeSwipe(ui.bag, async () => {
-      ui.bag.style.transform = "translateX(42%) rotate(4deg)";
-      ui.bagMoveCue.hidden = true;
-      noise(.38, .045, 950);
-      await sleep(420);
-      ui.recLed.hidden = false;
-      setPhase("led");
-    });
+    ui.bag.addEventListener("click", revealRecorder, { once: true });
   }
 
   async function revealRecorder() {
-    ui.recLed.hidden = true;
+    ui.bag.classList.add("moved-aside");
+    noise(.38, .045, 950);
+    await sleep(520);
     ui.bagTask.hidden = true;
     thump(0, .06, 90);
     tone(740, .14, .025, .08);
@@ -376,7 +368,7 @@
     ui.voiceMatch.hidden = true;
     ui.workprintEnd.hidden = false;
     setPhase("end");
-    ui.choiceConsequence.textContent = "Свет жилой части вагона становится ближе. Дверь тамбура остаётся позади.";
+    ui.choiceConsequence.textContent = "Свет жилой части вагона становится ближе. Дверь тамбура остаётся у тебя за спиной.";
     ui.objective.textContent = "До проводницы — два купе. Он остаётся на линии.";
   }
 
@@ -418,34 +410,6 @@
     element.addEventListener("pointerup", up);
   }
 
-  function makeSwipe(element, onSuccess) {
-    let startX = 0;
-    let active = false;
-    const down = (event) => {
-      active = true;
-      startX = event.clientX;
-      element.setPointerCapture(event.pointerId);
-    };
-    const move = (event) => {
-      if (active) element.style.transform = `translateX(${Math.max(0, event.clientX - startX)}px)`;
-    };
-    const up = (event) => {
-      if (!active) return;
-      active = false;
-      if (event.clientX - startX > 72) {
-        element.removeEventListener("pointerdown", down);
-        element.removeEventListener("pointermove", move);
-        element.removeEventListener("pointerup", up);
-        onSuccess();
-      } else {
-        element.style.transform = "";
-      }
-    };
-    element.addEventListener("pointerdown", down);
-    element.addEventListener("pointermove", move);
-    element.addEventListener("pointerup", up);
-  }
-
   $("#startSound").addEventListener("click", () => begin(true));
   $("#startSilent").addEventListener("click", () => begin(false));
   ui.soundToggle.addEventListener("click", async () => {
@@ -456,7 +420,6 @@
     ui.soundToggle.setAttribute("aria-pressed", String(!state.sound));
     logEvent("sound_toggle", { sound: state.sound });
   });
-  ui.recLed.addEventListener("click", revealRecorder);
   $$("[data-control]").forEach((button) => button.addEventListener("click", () => deviceControl(button.dataset.control)));
   ui.continueRecording.addEventListener("click", showVoiceMatch);
   $$("[data-final-choice]").forEach((button) => button.addEventListener("click", () => finish(button.dataset.finalChoice)));
