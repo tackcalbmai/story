@@ -18,10 +18,13 @@
   const ui = {
     app: $("#app"), gate: $("#gate"), experience: $("#experience"), chapter: $("#chapter"),
     objective: $("#objective"), twoCountries: $("#twoCountries"), dialogue: $("#dialogue"),
-    speaker: $("#speaker"), line: $("#line"), ticketTask: $("#ticketTask"), ticket: $("#ticket"),
+    speaker: $("#speaker"), line: $("#line"), dialogueNext: $("#dialogueNext"),
+    ticketTask: $("#ticketTask"), ticket: $("#ticket"),
     scanner: $("#scanner"), bagTask: $("#bagTask"), bag: $("#bag"), bagTarget: $("#bagTarget"),
     recLed: $("#recLed"), recorderPanel: $("#recorderPanel"), deviceState: $("#deviceState"),
     deviceTime: $("#deviceTime"), controlHint: $("#controlHint"), soundCaption: $("#soundCaption"),
+    evidenceBriefing: $("#evidenceBriefing"), playEvidenceButton: $("#playEvidenceButton"),
+    replayEvidence: $("#replayEvidence"),
     orderPuzzle: $("#orderPuzzle"), orderSlots: $("#orderSlots"), orderChoices: $("#orderChoices"),
     checkOrder: $("#checkOrder"), orderResult: $("#orderResult"), recordingScene: $("#recordingScene"),
     recordingText: $("#recordingText"), continueRecording: $("#continueRecording"), voiceMatch: $("#voiceMatch"),
@@ -31,7 +34,8 @@
 
   const state = {
     phase: "gate", sound: true, audio: null, master: null,
-    remoteAudio: null, controlStep: 0, order: [],
+    remoteAudio: null, controlStep: 0, order: [], orderAttempts: 0,
+    evidencePlaying: false, evidencePlays: 0,
     session: localStorage.getItem("story-session") || crypto.randomUUID(),
   };
   localStorage.setItem("story-session", state.session);
@@ -136,28 +140,44 @@
     ui.soundCaption.hidden = true;
   }
 
+  function showEvidenceBriefing() {
+    ui.recorderPanel.hidden = true;
+    ui.evidenceBriefing.hidden = false;
+    ui.objective.textContent = "Сначала прочитай задачу. Запись не начнётся сама.";
+    setPhase("evidence-ready");
+  }
+
   async function playEvidence() {
+    if (state.evidencePlaying) return;
+    state.evidencePlaying = true;
+    state.evidencePlays += 1;
+    logEvent("evidence_play", { count: state.evidencePlays });
     setPhase("evidence");
     ui.recorderPanel.hidden = true;
-    ui.objective.textContent = "Слушай не направление, а порядок и изменение среды.";
+    ui.evidenceBriefing.hidden = true;
+    ui.orderPuzzle.hidden = true;
+    ui.replayEvidence.disabled = true;
+    ui.objective.textContent = "Запись идёт. Следи за порядком четырёх событий.";
     noise(.35, .08, 1200);
     thump(.32, .12, 115);
     noise(.52, .06, 1700, .45);
-    await caption("[ткань · удар · скольжение]", 1200);
+    await caption("[ткань · удар · скольжение]", 2100);
 
     [0, .38, .82, 1.28, 1.76].forEach((delay, index) => footstep(delay, .1 - index * .014, 72 + index * 2));
-    await caption("[шаги становятся тише]", 2300);
+    await caption("[первая походка становится тише]", 3200);
 
     [0, .42, .86, 1.28].forEach((delay, index) => footstep(delay, .044 + index * .018, 58));
-    await caption("[другая походка становится громче]", 1800);
+    await caption("[вторая походка становится громче]", 2800);
 
     thump(0, .18, 65);
     noise(.32, .09, 460, .02);
-    await caption("[закрывается металлическая дверь]", 680);
+    await caption("[закрывается металлическая дверь]", 1800);
 
     for (let i = 0; i < 10; i += 1) thump(i * .28, .025 + i * .004, 42);
     ui.motionWash.classList.add("active");
-    await caption("[поезд начинает движение]", 1450);
+    await caption("[поезд начинает движение]", 1800);
+    state.evidencePlaying = false;
+    ui.replayEvidence.disabled = false;
     showOrderPuzzle();
   }
 
@@ -173,25 +193,27 @@
     logEvent("start", { sound });
     tone(520, .16, .035);
     tone(780, .18, .025, .07);
-    await sleep(1500);
+    await sleep(2400);
     ui.twoCountries.classList.add("gone");
     await runIntro();
   }
 
-  async function showLine(speaker, line, duration = 1450) {
+  async function showLine(speaker, line) {
     ui.speaker.textContent = speaker;
     ui.line.textContent = line;
     ui.dialogue.hidden = false;
     tone(speaker === "ОН" ? 470 : 620, .07, .022);
-    await sleep(duration);
+    await new Promise((resolve) => {
+      ui.dialogueNext.addEventListener("click", resolve, { once: true });
+    });
     ui.dialogue.hidden = true;
-    await sleep(180);
+    await sleep(120);
   }
 
   async function runIntro() {
     await showLine("ОН", "Ты ещё там?");
     await showLine("ОНА", "Уже выхожу.");
-    await showLine("ОН", "У тебя «уже» обычно минут на десять.", 1750);
+    await showLine("ОН", "У тебя «уже» обычно минут на десять.");
     await showLine("ОНА", "Сегодня на восемь.");
     showTicketTask();
   }
@@ -214,8 +236,8 @@
     ui.trainBackground.style.transform = "scale(1.1) translateY(-1.5%)";
     noise(.52, .06, 520);
     thump(.42, .12, 60);
-    await showLine("ОН", "Ты в вагоне?", 950);
-    await showLine("ОНА", "Да. Сумку поставлю — и всё.", 1350);
+    await showLine("ОН", "Ты в вагоне?");
+    await showLine("ОНА", "Да. Сумку поставлю — и всё.");
     showBagTask();
   }
 
@@ -305,7 +327,7 @@
       renderRecorderControls();
       logEvent("recorder_sequence_complete");
       await sleep(300);
-      playEvidence();
+      showEvidenceBriefing();
     }
   }
 
@@ -320,7 +342,7 @@
   function showOrderPuzzle() {
     setPhase("order");
     ui.orderPuzzle.hidden = false;
-    ui.objective.textContent = "Собери только то, что действительно слышно.";
+    ui.objective.textContent = "Выстрой четыре события. Запись можно переслушать.";
     renderOrder();
   }
 
@@ -350,15 +372,15 @@
 
   async function checkOrder() {
     const correct = state.order.every((id, index) => id === answer[index]);
+    state.orderAttempts += 1;
     logEvent("order_attempt", { correct });
     if (!correct) {
       ui.orderPuzzle.classList.remove("wrong");
       void ui.orderPuzzle.offsetWidth;
       ui.orderPuzzle.classList.add("wrong");
-      ui.orderResult.textContent = "Не сходится. Слушай, что затихает, а что приближается.";
-      await sleep(900);
-      state.order = [];
-      renderOrder();
+      ui.orderResult.textContent = state.orderAttempts > 1
+        ? "Подсказка: удар и скольжение были первыми, металлическая дверь — последней."
+        : "Не сходится. Порядок сохранён — измени нужные пункты или переслушай запись.";
       return;
     }
     ui.orderResult.textContent = "Сначала предмет. Потом один человек вышел. Другой вошёл позже.";
@@ -512,6 +534,8 @@
   });
   ui.recLed.addEventListener("click", revealRecorder);
   $$("[data-control]").forEach((button) => button.addEventListener("click", () => deviceControl(button.dataset.control)));
+  ui.playEvidenceButton.addEventListener("click", playEvidence);
+  ui.replayEvidence.addEventListener("click", playEvidence);
   ui.checkOrder.addEventListener("click", checkOrder);
   ui.continueRecording.addEventListener("click", showVoiceMatch);
   $$("[data-final-choice]").forEach((button) => button.addEventListener("click", () => finish(button.dataset.finalChoice)));
