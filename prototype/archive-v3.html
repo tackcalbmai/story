@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#efe9df" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Story — Vertical slice v3</title>
+  <link rel="stylesheet" href="./archive-v1.css" />
+  <link rel="stylesheet" href="./scene-v3.css" />
+</head>
+<body>
+  <main class="experience" id="experience" data-phase="gate">
+    <div class="paper-noise" aria-hidden="true"></div>
+
+    <section class="gate" id="gate">
+      <div class="gate-mark" aria-hidden="true"></div>
+      <p class="gate-kicker">STORY / vertical slice</p>
+      <h1>Фрагмент найден.</h1>
+      <p class="gate-copy">Лучше со звуком.</p>
+      <button class="start" id="start" type="button">коснуться</button>
+    </section>
+
+    <section class="archive" id="archive" aria-hidden="true">
+      <header class="archive-head">
+        <span class="chapter">архив / 001</span>
+        <button id="soundToggle" class="sound-toggle" type="button" aria-label="Выключить звук">звук · вкл</button>
+      </header>
+      <div class="stage" id="stage">
+        <div class="profile profile-a" data-profile="01"><div class="profile-orbit" aria-hidden="true"></div><div class="profile-core">01</div></div>
+        <div class="profile profile-b" data-profile="02"><div class="profile-orbit" aria-hidden="true"></div><div class="profile-core">02</div></div>
+        <svg class="connection-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+          <path class="connection-line" d="M 180 500 C 350 500 400 500 500 500" />
+          <path class="connection-line" d="M 820 500 C 650 500 600 500 500 500" />
+        </svg>
+        <div class="fragment" id="fragment" role="button" tabindex="0" aria-label="Аудиофрагмент. Перетащите к одному из профилей.">
+          <div class="fragment-index" id="fragmentIndex">fragment 0001</div>
+          <svg class="wave" id="wave" viewBox="0 0 320 72" aria-hidden="true"></svg>
+          <div class="fragment-meta"><span id="fragmentTime">00:18</span><span id="fragmentType">audio</span></div>
+        </div>
+        <div class="prompt" id="prompt">перетащите фрагмент</div>
+        <div class="diagnostic" id="diagnostic" aria-live="polite"><div class="diagnostic-line" id="diagnosticMain"></div><div class="diagnostic-sub" id="diagnosticSub"></div></div>
+        <aside class="future-fragment" id="futureFragment" aria-hidden="true"><span>1848</span><small>сегодня</small></aside>
+      </div>
+      <footer class="archive-foot"><span id="progressLabel">01 / 03</span><span class="hint">drag · listen · observe</span></footer>
+    </section>
+
+    <section class="story-shell" id="storyShell" aria-hidden="true">
+      <div class="story-progress"><span id="storyLabel">01 · его сторона</span><span id="storyTimer">00:00</span></div>
+
+      <article class="panel panel-car active" id="panelCar">
+        <div class="scene-grain" aria-hidden="true"></div><div class="scene-vignette" aria-hidden="true"></div>
+        <div class="car-world" aria-hidden="true">
+          <div class="road-light rl-a"></div><div class="road-light rl-b"></div><div class="road-light rl-c"></div>
+          <svg class="car-sketch" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path class="soft" d="M8 115 C88 83 293 72 386 124"/>
+            <path class="soft" d="M13 570 C120 524 283 532 386 582"/>
+            <path class="line" d="M48 610 C111 560 161 539 209 532 C256 525 304 544 349 590"/>
+            <circle class="line" cx="226" cy="711" r="77"/>
+            <path class="line" d="M154 710 C195 681 252 683 300 717"/>
+            <path class="figure" d="M93 400 C107 332 154 293 209 300 C255 305 275 342 271 389 C268 435 238 458 201 465 C158 471 113 448 93 400 Z"/>
+            <path class="figure" d="M148 466 C119 500 104 546 100 611"/>
+            <path class="figure" d="M227 463 C269 493 295 547 303 612"/>
+          </svg>
+        </div>
+        <div class="call-pill"><i></i><span>связь активна</span></div>
+        <div class="dialogue car-dialogue">
+          <p data-at="900">— Ты вообще куда едешь?</p>
+          <p class="reply" data-at="2500">— По делам.</p>
+          <p data-at="4200">— Очень подробно.</p>
+          <p class="reply" data-at="5900">— Рад помочь.</p>
+        </div>
+        <button class="scene-next" id="toRestaurant" type="button">другая сторона разговора</button>
+      </article>
+
+      <article class="panel panel-bridge" id="panelBridge" aria-hidden="true">
+        <div class="bridge-line"></div>
+        <svg class="bridge-wave" viewBox="0 0 320 72" aria-hidden="true"><path d="M0 36 C22 36 28 14 42 36 S68 58 82 36 110 8 126 36 155 62 171 36 198 16 212 36 244 54 258 36 290 24 320 36"/></svg>
+        <span>тот же разговор</span>
+      </article>
+
+      <article class="panel panel-restaurant" id="panelRestaurant" aria-hidden="true">
+        <div class="scene-grain" aria-hidden="true"></div><div class="scene-vignette" aria-hidden="true"></div>
+        <div class="restaurant-world" aria-hidden="true">
+          <div class="warm-lamp l1"></div><div class="warm-lamp l2"></div><div class="steam s1"></div><div class="steam s2"></div>
+          <svg class="restaurant-sketch" viewBox="0 0 390 844" preserveAspectRatio="none">
+            <path class="soft" d="M18 170 H372 M34 235 H350 M28 518 H360 M55 620 H335"/>
+            <path class="soft" d="M71 170 V620 M318 170 V620"/>
+            <path class="counter" d="M28 540 C109 522 286 521 364 540 L354 655 H40 Z"/>
+            <path class="figure" d="M159 276 C171 238 201 222 226 232 C254 244 263 277 251 310 C244 332 228 346 204 347 C174 348 149 320 159 276 Z"/>
+            <path class="figure" d="M173 347 C145 390 139 450 147 530 M230 347 C258 392 266 456 258 531"/>
+            <path class="figure" d="M161 410 C190 430 223 430 251 409"/>
+            <path class="tattoo" d="M183 382 C198 367 216 369 231 383 M192 390 C204 379 216 380 225 390"/>
+          </svg>
+        </div>
+        <div class="dialogue restaurant-dialogue">
+          <p data-at="900">— Ты опять молчишь.</p>
+          <p class="reply" data-at="2600">— Потому что слушаю.</p>
+          <p class="aside" data-at="4400">Подача!</p>
+          <p class="reply" data-at="5750">— Теперь я тоже в курсе.</p>
+        </div>
+        <button class="scene-next" id="toSilence" type="button">дальше</button>
+      </article>
+
+      <article class="panel panel-silence" id="panelSilence" aria-hidden="true">
+        <div class="silence-split"><div class="silence-left"></div><div class="silence-right"></div></div>
+        <div class="silence-copy"><p id="silenceA">— Ты там?</p><p id="silenceB">— Ага.</p></div>
+      </article>
+
+      <article class="panel panel-return" id="panelReturn" aria-hidden="true">
+        <div class="return-copy"><span>совместные координаты</span><strong>0</strong></div>
+        <div class="return-copy second"><span>связанные фрагменты</span><strong>1847</strong></div>
+        <button class="return-archive" id="finishSlice" type="button">вернуться в архив</button>
+      </article>
+    </section>
+  </main>
+
+  <script src="./archive-v3.js"></script>
+  <script src="./scene-v3.js"></script>
+</body>
+</html>
