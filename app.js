@@ -6,8 +6,8 @@
     bag: "https://cdn.creativeclaw.co/u/ce56d390/images/8c0a0b44-a788-4c64-872c-dd662c7df9db.png",
     recorder: "https://cdn.creativeclaw.co/u/ce56d390/images/8df5dfd5-0375-494b-99f0-2541540d4b46.png",
     ownerVoice: "https://cdn.creativeclaw.co/u/ce56d390/audio/ca1d9628-d2c3-4a59-87e5-39e0bee3af5b.mp3",
-    manRecorded: "https://cdn.creativeclaw.co/u/ce56d390/audio/21becc01-5f79-473d-bdb0-fe5561d05ad0.mp3",
-    manLive: "https://cdn.creativeclaw.co/u/ce56d390/audio/60bd1d81-7afb-4656-993e-da78ef7bdd5c.mp3",
+    manRecorded: "https://cdn.creativeclaw.co/u/ce56d390/audio/0a291c5a-c367-46df-a725-c941f01424f7.mp3",
+    manLive: "https://cdn.creativeclaw.co/u/ce56d390/audio/3efdbfb3-3224-4887-9eaf-c19e8e252f9d.mp3",
   };
 
   const TELEMETRY_URL = "https://bosjlvrsgayngbcnzjzk.supabase.co/functions/v1/story-playtest";
@@ -24,10 +24,13 @@
     recLed: $("#recLed"), recorderPanel: $("#recorderPanel"), deviceState: $("#deviceState"),
     deviceTime: $("#deviceTime"), controlHint: $("#controlHint"), soundCaption: $("#soundCaption"),
     evidenceBriefing: $("#evidenceBriefing"), playEvidenceButton: $("#playEvidenceButton"),
-    replayEvidence: $("#replayEvidence"),
+    replayEvidence: $("#replayEvidence"), evidencePlayback: $("#evidencePlayback"),
+    evidenceRecorderImage: $("#evidenceRecorderImage"), evidencePlaybackStep: $("#evidencePlaybackStep"),
     orderPuzzle: $("#orderPuzzle"), orderSlots: $("#orderSlots"), orderChoices: $("#orderChoices"),
-    checkOrder: $("#checkOrder"), orderResult: $("#orderResult"), recordingScene: $("#recordingScene"),
-    recordingText: $("#recordingText"), continueRecording: $("#continueRecording"), voiceMatch: $("#voiceMatch"),
+    checkOrder: $("#checkOrder"), orderResult: $("#orderResult"), deductionScene: $("#deductionScene"),
+    openLastFile: $("#openLastFile"), recordingScene: $("#recordingScene"),
+    recordingSpeaker: $("#recordingSpeaker"), recordingText: $("#recordingText"),
+    continueRecording: $("#continueRecording"), voiceMatch: $("#voiceMatch"), voiceChoices: $("#voiceChoices"),
     workprintEnd: $("#workprintEnd"), choiceConsequence: $("#choiceConsequence"), motionWash: $("#motionWash"),
     trainBackground: $("#trainBackground"), soundToggle: $("#soundToggle"),
   };
@@ -43,6 +46,7 @@
   ui.trainBackground.src = ASSETS.train;
   ui.bag.querySelector("img").src = ASSETS.bag;
   ui.recorderPanel.querySelector("img").src = ASSETS.recorder;
+  ui.evidenceRecorderImage.src = ASSETS.recorder;
 
   function setPhase(phase) {
     state.phase = phase;
@@ -156,27 +160,34 @@
     ui.recorderPanel.hidden = true;
     ui.evidenceBriefing.hidden = true;
     ui.orderPuzzle.hidden = true;
+    ui.evidencePlayback.hidden = false;
     ui.replayEvidence.disabled = true;
     ui.objective.textContent = "Запись идёт. Следи за порядком четырёх событий.";
+    ui.evidencePlaybackStep.textContent = "PLAY · ПРЕДМЕТ ПАДАЕТ";
     noise(.35, .08, 1200);
     thump(.32, .12, 115);
     noise(.52, .06, 1700, .45);
     await caption("[ткань · удар · скольжение]", 2100);
 
+    ui.evidencePlaybackStep.textContent = "PLAY · ШАГИ УДАЛЯЮТСЯ";
     [0, .38, .82, 1.28, 1.76].forEach((delay, index) => footstep(delay, .1 - index * .014, 72 + index * 2));
     await caption("[первая походка становится тише]", 3200);
 
+    ui.evidencePlaybackStep.textContent = "PLAY · ДРУГИЕ ШАГИ ПРИБЛИЖАЮТСЯ";
     [0, .42, .86, 1.28].forEach((delay, index) => footstep(delay, .044 + index * .018, 58));
     await caption("[вторая походка становится громче]", 2800);
 
+    ui.evidencePlaybackStep.textContent = "PLAY · МЕТАЛЛИЧЕСКАЯ ДВЕРЬ";
     thump(0, .18, 65);
     noise(.32, .09, 460, .02);
     await caption("[закрывается металлическая дверь]", 1800);
 
+    ui.evidencePlaybackStep.textContent = "PLAY · ПОЕЗД ТРОГАЕТСЯ";
     for (let i = 0; i < 10; i += 1) thump(i * .28, .025 + i * .004, 42);
     ui.motionWash.classList.add("active");
     await caption("[поезд начинает движение]", 1800);
     state.evidencePlaying = false;
+    ui.evidencePlayback.hidden = true;
     ui.replayEvidence.disabled = false;
     showOrderPuzzle();
   }
@@ -389,7 +400,13 @@
     tone(660, .28, .025, .14);
     tone(820, .32, .02, .28);
     ui.orderPuzzle.hidden = true;
-    playRecordingScene();
+    showDeduction();
+  }
+
+  function showDeduction() {
+    setPhase("deduction");
+    ui.deductionScene.hidden = false;
+    ui.objective.textContent = "Запись восстановила последовательность событий.";
   }
 
   async function playRemote(url) {
@@ -406,43 +423,59 @@
     }
   }
 
-  function waitForAudio(audio, fallbackMs) {
-    if (!audio) return sleep(fallbackMs);
+  function waitForAudio(audio, silentMs = 2200, timeoutMs = 45000) {
+    if (!audio) return sleep(silentMs);
     return new Promise((resolve) => {
-      const timer = window.setTimeout(resolve, fallbackMs);
-      audio.addEventListener("ended", () => {
+      let settled = false;
+      const finishWaiting = () => {
+        if (settled) return;
+        settled = true;
         window.clearTimeout(timer);
         resolve();
-      }, { once: true });
+      };
+      const timer = window.setTimeout(finishWaiting, timeoutMs);
+      audio.addEventListener("ended", finishWaiting, { once: true });
+      audio.addEventListener("error", finishWaiting, { once: true });
+      if (audio.ended) finishWaiting();
     });
   }
 
   async function playRecordingScene() {
+    ui.deductionScene.hidden = true;
     setPhase("recording");
     ui.recordingScene.hidden = false;
-    ui.objective.textContent = "На записи есть голос.";
+    ui.continueRecording.hidden = true;
+    ui.objective.textContent = "Последний файл записан хозяйкой диктофона.";
     const parts = [
       "Он пришёл за мной. На вокзал. Мой руководитель. Стоит у вагона.",
       "Я не поеду. Сейчас выйду, вернусь внутрь и позвоню сто двенадцать.",
     ];
+    ui.recordingSpeaker.textContent = "ГОЛОС ХОЗЯЙКИ ДИКТОФОНА";
     ui.recordingText.textContent = `${parts[0]}\n\n${parts[1]}`;
     const ownerAudio = await playRemote(ASSETS.ownerVoice);
-    await waitForAudio(ownerAudio, 10500);
-    ui.recordingText.textContent = "[мужской голос рядом] Нам надо договорить.";
+    await waitForAudio(ownerAudio, 8500, 45000);
+    await sleep(450);
+    ui.recordingSpeaker.textContent = "МУЖСКОЙ ГОЛОС РЯДОМ С НЕЙ";
+    ui.recordingText.textContent = "Нам надо договорить.";
     const recordedVoice = await playRemote(ASSETS.manRecorded);
-    await waitForAudio(recordedVoice, 2600);
+    await waitForAudio(recordedVoice, 2400, 15000);
     ui.continueRecording.hidden = false;
   }
 
   async function showVoiceMatch() {
     ui.recordingScene.hidden = true;
     ui.voiceMatch.hidden = false;
+    ui.voiceChoices.hidden = true;
     setPhase("voice-match");
-    ui.chapter.textContent = "02 · ТОТ ЖЕ ГОЛОС";
-    ui.objective.textContent = "Мужчина в коридоре говорит спокойно.";
-    playRemote(ASSETS.manLive);
-    await sleep(180);
-    await caption("[мужской голос за дверью] Ваш билет, пожалуйста.", 2600);
+    ui.chapter.textContent = "02 · ЗА ДВЕРЬЮ";
+    ui.objective.textContent = "Человек с записи стоит за дверью вагона.";
+    ui.soundCaption.textContent = "[тот же мужской голос за дверью] Ваш билет, пожалуйста.";
+    ui.soundCaption.hidden = false;
+    const liveVoice = await playRemote(ASSETS.manLive);
+    await waitForAudio(liveVoice, 3200, 15000);
+    await sleep(450);
+    ui.soundCaption.hidden = true;
+    ui.voiceChoices.hidden = false;
   }
 
   function finish(choice) {
@@ -451,9 +484,9 @@
     ui.workprintEnd.hidden = false;
     setPhase("end");
     ui.choiceConsequence.textContent = choice === "hide"
-      ? "Она убирает устройство и идёт к проводнице. Безопасность раньше разгадки."
-      : "Она оставляет устройство на виду, но сама перемещается ближе к проводнице и людям.";
-    ui.objective.textContent = "Первая механика завершена.";
+      ? "Она прячет устройство, не открывает дверь и идёт прямо к проводнице."
+      : "Она оставляет устройство, не открывает дверь и перемещается ближе к другим пассажирам.";
+    ui.objective.textContent = "Она в безопасности. Мужчина остаётся за закрытой дверью.";
   }
 
   function makeDraggable(element, target, onSuccess) {
@@ -537,6 +570,7 @@
   ui.playEvidenceButton.addEventListener("click", playEvidence);
   ui.replayEvidence.addEventListener("click", playEvidence);
   ui.checkOrder.addEventListener("click", checkOrder);
+  ui.openLastFile.addEventListener("click", playRecordingScene);
   ui.continueRecording.addEventListener("click", showVoiceMatch);
   $$("[data-final-choice]").forEach((button) => button.addEventListener("click", () => finish(button.dataset.finalChoice)));
   $("#restart").addEventListener("click", () => {
