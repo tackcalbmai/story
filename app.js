@@ -8,6 +8,8 @@
     ownerVoice: "https://cdn.creativeclaw.co/u/ce56d390/audio/ca1d9628-d2c3-4a59-87e5-39e0bee3af5b.mp3",
     manRecorded: "https://cdn.creativeclaw.co/u/ce56d390/audio/0a291c5a-c367-46df-a725-c941f01424f7.mp3",
     manLive: "https://cdn.creativeclaw.co/u/ce56d390/audio/3efdbfb3-3224-4887-9eaf-c19e8e252f9d.mp3",
+    manEarlier: "https://cdn.creativeclaw.co/u/ce56d390/audio/c66b24c2-171a-4bf2-8ff0-9f9f4fa46b15.mp3",
+    conductor: "https://cdn.creativeclaw.co/u/ce56d390/images/ab532e04-bbfd-45e6-b8af-2e51503cf064.webp",
   };
 
   const TELEMETRY_URL = "https://bosjlvrsgayngbcnzjzk.supabase.co/functions/v1/story-playtest";
@@ -20,13 +22,17 @@
     objective: $("#objective"), twoCountries: $("#twoCountries"), dialogue: $("#dialogue"),
     speaker: $("#speaker"), line: $("#line"), dialogueNext: $("#dialogueNext"),
     ticketTask: $("#ticketTask"), ticket: $("#ticket"),
-    scanner: $("#scanner"), bagTask: $("#bagTask"), bag: $("#bag"),
+    scanner: $("#scanner"), bagTask: $("#bagTask"), bag: $("#bag"), recorderFind: $("#recorderFind"),
     recorderPanel: $("#recorderPanel"), deviceState: $("#deviceState"),
     deviceTime: $("#deviceTime"), controlHint: $("#controlHint"), soundCaption: $("#soundCaption"),
     recordingScene: $("#recordingScene"), recordingRecorderImage: $("#recordingRecorderImage"),
     recordingSpeaker: $("#recordingSpeaker"), recordingText: $("#recordingText"),
     continueRecording: $("#continueRecording"), voiceMatch: $("#voiceMatch"), voiceChoices: $("#voiceChoices"),
-    workprintEnd: $("#workprintEnd"), choiceConsequence: $("#choiceConsequence"), motionWash: $("#motionWash"),
+    workprintEnd: $("#workprintEnd"), choiceConsequence: $("#choiceConsequence"),
+    continueChapter: $("#continueChapter"), handoffScene: $("#handoffScene"), handoffRecorder: $("#handoffRecorder"),
+    archiveScene: $("#archiveScene"), file45: $("#file45"), file45Playback: $("#file45Playback"),
+    file45Transcript: $("#file45Transcript"), closeFile45: $("#closeFile45"), chapterTwoEnd: $("#chapterTwoEnd"),
+    motionWash: $("#motionWash"),
     trainBackground: $("#trainBackground"), soundToggle: $("#soundToggle"),
   };
 
@@ -39,8 +45,10 @@
 
   ui.trainBackground.src = ASSETS.train;
   ui.bag.querySelector("img").src = ASSETS.bag;
+  ui.recorderFind.querySelector("img").src = ASSETS.recorder;
   ui.recorderPanel.querySelector("img").src = ASSETS.recorder;
   ui.recordingRecorderImage.src = ASSETS.recorder;
+  ui.handoffRecorder.querySelector("img").src = ASSETS.recorder;
 
   function setPhase(phase) {
     state.phase = phase;
@@ -212,6 +220,7 @@
     thump(.12, .08, 75);
     ui.bag.classList.add("settled");
     ui.bag.setAttribute("aria-label", "Отодвинуть сумку и посмотреть, что под ней");
+    ui.recorderFind.hidden = false;
     ui.objective.textContent = "Под сумкой мигает красный свет. Коснись её ещё раз.";
     setPhase("bag-move");
     ui.bag.addEventListener("click", revealRecorder, { once: true });
@@ -221,10 +230,20 @@
     ui.bag.classList.add("moved-aside");
     noise(.38, .045, 950);
     await sleep(520);
-    ui.bagTask.hidden = true;
+    ui.recorderFind.classList.add("revealed");
+    ui.recorderFind.focus({ preventScroll: true });
     thump(0, .06, 90);
     tone(740, .14, .025, .08);
-    ui.objective.textContent = "Под полкой лежит включённый диктофон.";
+    ui.objective.textContent = "Под полкой лежит включённый диктофон. Коснись его.";
+    ui.recorderFind.addEventListener("click", pickUpRecorder, { once: true });
+    setPhase("recorder-found");
+  }
+
+  async function pickUpRecorder() {
+    ui.recorderFind.classList.add("picked-up");
+    tone(740, .14, .025);
+    await sleep(720);
+    ui.bagTask.hidden = true;
     await showLine("ОНА", "Тут чужой диктофон. И он всё ещё пишет.");
     await showLine("ОН", "Останови запись. Посмотрим последний файл — может, поймём, кому вернуть.");
     await showLine("ОНА", "Потом отнесу проводнице.");
@@ -372,6 +391,69 @@
     ui.objective.textContent = "До проводницы — два купе. Он остаётся на линии.";
   }
 
+  async function startChapterTwo() {
+    ui.workprintEnd.hidden = true;
+    ui.chapter.textContent = "03 · ПРОВОДНИЦА";
+    setPhase("conductor");
+    ui.trainBackground.style.opacity = "0";
+    await sleep(360);
+    if (ASSETS.conductor) {
+      ui.trainBackground.src = ASSETS.conductor;
+      try { await ui.trainBackground.decode(); } catch { /* continue with browser fallback */ }
+    }
+    ui.trainBackground.style.transform = "scale(1.04)";
+    ui.trainBackground.style.filter = "saturate(.72) contrast(1.06) brightness(.78)";
+    ui.trainBackground.style.opacity = "1";
+    ui.objective.textContent = "Ты доходишь до служебного купе.";
+    await sleep(1300);
+    await showLine("ОН", "Ты дошла?");
+    await showLine("ОНА", "Да. Проводница здесь.");
+    await showLine("ПРОВОДНИЦА", "Что случилось?");
+    await showLine("ОНА", "У дальней двери мужчина. Сказал: «Ваш билет».");
+    await showLine("ПРОВОДНИЦА", "В этом вагоне билеты проверяю только я. Я никого не посылала.");
+    ui.handoffScene.hidden = false;
+    ui.objective.textContent = "Покажи проводнице найденный диктофон.";
+  }
+
+  async function handoffRecorder() {
+    ui.handoffRecorder.classList.add("passed");
+    await sleep(620);
+    ui.handoffScene.hidden = true;
+    await showLine("ПРОВОДНИЦА", "Где ты его нашла?");
+    await showLine("ОНА", "Под полкой. Он продолжал записывать.");
+    await showLine("ПРОВОДНИЦА", "Оставайся здесь. Я сообщу начальнику поезда.");
+    await showLine("ОН", "Перед последним файлом есть ещё один. Восемь секунд.");
+    ui.archiveScene.hidden = false;
+    ui.objective.textContent = "На экране диктофона виден предыдущий файл.";
+    setPhase("archive");
+  }
+
+  async function playEarlierFile() {
+    ui.file45.disabled = true;
+    ui.file45.classList.add("playing");
+    ui.file45Playback.hidden = false;
+    ui.file45Transcript.textContent = "[офисный шум · щелчок двери]";
+    noise(.55, .035, 1300);
+    await sleep(1300);
+    ui.file45Transcript.textContent = "[тот же мужской голос] Удалите запись.";
+    const earlierVoice = await playRemote(ASSETS.manEarlier);
+    await waitForAudio(earlierVoice, 2800, 15000);
+    await sleep(500);
+    ui.file45Transcript.textContent = "[конец файла]";
+    ui.closeFile45.hidden = false;
+    ui.objective.textContent = "Это тот же голос. Теперь понятна его цель.";
+  }
+
+  async function closeEarlierFile() {
+    ui.archiveScene.hidden = true;
+    await showLine("ОН", "Теперь понятно, зачем он сел в поезд.");
+    await showLine("ОНА", "Он ищет этот диктофон.");
+    await showLine("ПРОВОДНИЦА", "Не включай остальные файлы. Дождёмся начальника поезда.");
+    ui.chapterTwoEnd.hidden = false;
+    ui.objective.textContent = "Служебная дверь заперта. Ты не одна.";
+    setPhase("chapter-two-end");
+  }
+
   function makeDraggable(element, target, onSuccess) {
     let active = false;
     let startX = 0;
@@ -422,7 +504,11 @@
   });
   $$("[data-control]").forEach((button) => button.addEventListener("click", () => deviceControl(button.dataset.control)));
   ui.continueRecording.addEventListener("click", showVoiceMatch);
-  $$("[data-final-choice]").forEach((button) => button.addEventListener("click", () => finish(button.dataset.finalChoice)));
+  $("[data-final-choice]").forEach((button) => button.addEventListener("click", () => finish(button.dataset.finalChoice)));
+  ui.continueChapter.addEventListener("click", startChapterTwo);
+  ui.handoffRecorder.addEventListener("click", handoffRecorder);
+  ui.file45.addEventListener("click", playEarlierFile);
+  ui.closeFile45.addEventListener("click", closeEarlierFile);
   $("#restart").addEventListener("click", () => {
     localStorage.removeItem(STORAGE_KEY);
     location.reload();
