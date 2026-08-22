@@ -20,7 +20,7 @@
   const ui = {
     app: $("#app"), gate: $("#gate"), experience: $("#experience"), chapter: $("#chapter"),
     objective: $("#objective"), twoCountries: $("#twoCountries"), dialogue: $("#dialogue"),
-    speaker: $("#speaker"), line: $("#line"), dialogueNext: $("#dialogueNext"),
+    speaker: $("#speaker"), dialogueChannel: $("#dialogueChannel"), line: $("#line"), dialogueNext: $("#dialogueNext"),
     ticketTask: $("#ticketTask"), ticket: $("#ticket"),
     scanner: $("#scanner"), bagTask: $("#bagTask"), bag: $("#bag"), recorderFind: $("#recorderFind"),
     recorderPanel: $("#recorderPanel"), deviceState: $("#deviceState"),
@@ -163,8 +163,10 @@
     await runIntro();
   }
 
-  async function showLine(speaker, line) {
+  async function showLine(speaker, line, channel = "phone") {
     ui.speaker.textContent = speaker;
+    ui.dialogue.dataset.channel = channel;
+    ui.dialogueChannel.textContent = channel === "phone" ? "ЗВОНОК · НА ЛИНИИ" : "РЯДОМ · В ВАГОНЕ";
     ui.line.textContent = line;
     ui.dialogue.hidden = false;
     tone(speaker === "ОН" ? 470 : 620, .07, .022);
@@ -408,9 +410,9 @@
     await sleep(1300);
     await showLine("ОН", "Ты дошла?");
     await showLine("ОНА", "Да. Проводница здесь.");
-    await showLine("ПРОВОДНИЦА", "Что случилось?");
-    await showLine("ОНА", "У дальней двери мужчина. Сказал: «Ваш билет».");
-    await showLine("ПРОВОДНИЦА", "В этом вагоне билеты проверяю только я. Я никого не посылала.");
+    await showLine("ПРОВОДНИЦА", "Что случилось?", "room");
+    await showLine("ОНА", "У дальней двери мужчина. Сказал: «Ваш билет».", "room");
+    await showLine("ПРОВОДНИЦА", "В этом вагоне билеты проверяю только я. Я никого не посылала.", "room");
     ui.handoffScene.hidden = false;
     ui.objective.textContent = "Покажи проводнице найденный диктофон.";
   }
@@ -419,9 +421,9 @@
     ui.handoffRecorder.classList.add("passed");
     await sleep(620);
     ui.handoffScene.hidden = true;
-    await showLine("ПРОВОДНИЦА", "Где ты его нашла?");
-    await showLine("ОНА", "Под полкой. Он продолжал записывать.");
-    await showLine("ПРОВОДНИЦА", "Оставайся здесь. Я сообщу начальнику поезда.");
+    await showLine("ПРОВОДНИЦА", "Где ты его нашла?", "room");
+    await showLine("ОНА", "Под полкой. Он продолжал записывать.", "room");
+    await showLine("ПРОВОДНИЦА", "Оставайся здесь. Я сообщу начальнику поезда.", "room");
     await showLine("ОН", "Перед последним файлом есть ещё один. Восемь секунд.");
     ui.archiveScene.hidden = false;
     ui.objective.textContent = "На экране диктофона виден предыдущий файл.";
@@ -448,7 +450,7 @@
     ui.archiveScene.hidden = true;
     await showLine("ОН", "Теперь понятно, зачем он сел в поезд.");
     await showLine("ОНА", "Он ищет этот диктофон.");
-    await showLine("ПРОВОДНИЦА", "Не включай остальные файлы. Дождёмся начальника поезда.");
+    await showLine("ПРОВОДНИЦА", "Не включай остальные файлы. Дождёмся начальника поезда.", "room");
     ui.chapterTwoEnd.hidden = false;
     ui.objective.textContent = "Служебная дверь заперта. Ты не одна.";
     setPhase("chapter-two-end");
