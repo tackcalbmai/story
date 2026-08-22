@@ -21,14 +21,10 @@
     speaker: $("#speaker"), line: $("#line"), dialogueNext: $("#dialogueNext"),
     ticketTask: $("#ticketTask"), ticket: $("#ticket"),
     scanner: $("#scanner"), bagTask: $("#bagTask"), bag: $("#bag"), bagTarget: $("#bagTarget"),
+    bagMoveCue: $("#bagMoveCue"),
     recLed: $("#recLed"), recorderPanel: $("#recorderPanel"), deviceState: $("#deviceState"),
     deviceTime: $("#deviceTime"), controlHint: $("#controlHint"), soundCaption: $("#soundCaption"),
-    evidenceBriefing: $("#evidenceBriefing"), playEvidenceButton: $("#playEvidenceButton"),
-    replayEvidence: $("#replayEvidence"), evidencePlayback: $("#evidencePlayback"),
-    evidenceRecorderImage: $("#evidenceRecorderImage"), evidencePlaybackStep: $("#evidencePlaybackStep"),
-    orderPuzzle: $("#orderPuzzle"), orderSlots: $("#orderSlots"), orderChoices: $("#orderChoices"),
-    checkOrder: $("#checkOrder"), orderResult: $("#orderResult"), deductionScene: $("#deductionScene"),
-    openLastFile: $("#openLastFile"), recordingScene: $("#recordingScene"),
+    recordingScene: $("#recordingScene"), recordingRecorderImage: $("#recordingRecorderImage"),
     recordingSpeaker: $("#recordingSpeaker"), recordingText: $("#recordingText"),
     continueRecording: $("#continueRecording"), voiceMatch: $("#voiceMatch"), voiceChoices: $("#voiceChoices"),
     workprintEnd: $("#workprintEnd"), choiceConsequence: $("#choiceConsequence"), motionWash: $("#motionWash"),
@@ -37,8 +33,7 @@
 
   const state = {
     phase: "gate", sound: true, audio: null, master: null,
-    remoteAudio: null, controlStep: 0, order: [], orderAttempts: 0,
-    evidencePlaying: false, evidencePlays: 0,
+    remoteAudio: null, controlStep: 0,
     session: localStorage.getItem("story-session") || crypto.randomUUID(),
   };
   localStorage.setItem("story-session", state.session);
@@ -46,7 +41,7 @@
   ui.trainBackground.src = ASSETS.train;
   ui.bag.querySelector("img").src = ASSETS.bag;
   ui.recorderPanel.querySelector("img").src = ASSETS.recorder;
-  ui.evidenceRecorderImage.src = ASSETS.recorder;
+  ui.recordingRecorderImage.src = ASSETS.recorder;
 
   function setPhase(phase) {
     state.phase = phase;
@@ -144,54 +139,6 @@
     ui.soundCaption.hidden = true;
   }
 
-  function showEvidenceBriefing() {
-    ui.recorderPanel.hidden = true;
-    ui.evidenceBriefing.hidden = false;
-    ui.objective.textContent = "Сначала прочитай задачу. Запись не начнётся сама.";
-    setPhase("evidence-ready");
-  }
-
-  async function playEvidence() {
-    if (state.evidencePlaying) return;
-    state.evidencePlaying = true;
-    state.evidencePlays += 1;
-    logEvent("evidence_play", { count: state.evidencePlays });
-    setPhase("evidence");
-    ui.recorderPanel.hidden = true;
-    ui.evidenceBriefing.hidden = true;
-    ui.orderPuzzle.hidden = true;
-    ui.evidencePlayback.hidden = false;
-    ui.replayEvidence.disabled = true;
-    ui.objective.textContent = "Запись идёт. Следи за порядком четырёх событий.";
-    ui.evidencePlaybackStep.textContent = "PLAY · ПРЕДМЕТ ПАДАЕТ";
-    noise(.35, .08, 1200);
-    thump(.32, .12, 115);
-    noise(.52, .06, 1700, .45);
-    await caption("[ткань · удар · скольжение]", 2100);
-
-    ui.evidencePlaybackStep.textContent = "PLAY · ШАГИ УДАЛЯЮТСЯ";
-    [0, .38, .82, 1.28, 1.76].forEach((delay, index) => footstep(delay, .1 - index * .014, 72 + index * 2));
-    await caption("[первая походка становится тише]", 3200);
-
-    ui.evidencePlaybackStep.textContent = "PLAY · ДРУГИЕ ШАГИ ПРИБЛИЖАЮТСЯ";
-    [0, .42, .86, 1.28].forEach((delay, index) => footstep(delay, .044 + index * .018, 58));
-    await caption("[вторая походка становится громче]", 2800);
-
-    ui.evidencePlaybackStep.textContent = "PLAY · МЕТАЛЛИЧЕСКАЯ ДВЕРЬ";
-    thump(0, .18, 65);
-    noise(.32, .09, 460, .02);
-    await caption("[закрывается металлическая дверь]", 1800);
-
-    ui.evidencePlaybackStep.textContent = "PLAY · ПОЕЗД ТРОГАЕТСЯ";
-    for (let i = 0; i < 10; i += 1) thump(i * .28, .025 + i * .004, 42);
-    ui.motionWash.classList.add("active");
-    await caption("[поезд начинает движение]", 1800);
-    state.evidencePlaying = false;
-    ui.evidencePlayback.hidden = true;
-    ui.replayEvidence.disabled = false;
-    showOrderPuzzle();
-  }
-
   async function begin(sound) {
     state.sound = sound;
     await ensureAudio();
@@ -226,6 +173,8 @@
     await showLine("ОНА", "Уже выхожу.");
     await showLine("ОН", "У тебя «уже» обычно минут на десять.");
     await showLine("ОНА", "Сегодня на восемь.");
+    await showLine("ОН", "До дома ещё долго?");
+    await showLine("ОНА", "Ночной поезд, потом такси. Не отключайся, пока не сяду.");
     showTicketTask();
   }
 
@@ -264,10 +213,13 @@
     thump(.12, .08, 75);
     ui.bag.style.transform = "";
     ui.bag.classList.add("settled");
-    ui.objective.textContent = "Под сумкой мигает слабый красный свет. Сдвинь её вправо.";
+    ui.bagTarget.classList.add("placed");
+    ui.bagMoveCue.hidden = false;
+    ui.objective.textContent = "Под сумкой мигает слабый красный свет.";
     setPhase("bag-move");
     makeSwipe(ui.bag, async () => {
       ui.bag.style.transform = "translateX(42%) rotate(4deg)";
+      ui.bagMoveCue.hidden = true;
       noise(.38, .045, 950);
       await sleep(420);
       ui.recLed.hidden = false;
@@ -280,12 +232,15 @@
     ui.bagTask.hidden = true;
     thump(0, .06, 90);
     tone(740, .14, .025, .08);
-    ui.objective.textContent = "Обычный диктофон. Красный индикатор всё ещё горит.";
+    ui.objective.textContent = "Под полкой лежит включённый диктофон.";
+    await showLine("ОНА", "Тут чужой диктофон. И он всё ещё пишет.");
+    await showLine("ОН", "Останови запись. Посмотрим последний файл — может, поймём, кому вернуть.");
+    await showLine("ОНА", "Потом отнесу проводнице.");
     ui.recorderPanel.hidden = false;
     state.controlStep = 0;
     ui.deviceState.textContent = "REC";
     ui.deviceTime.textContent = "00:17:42";
-    ui.controlHint.textContent = "Шаг 1 из 3 · Нажми STOP.";
+    ui.controlHint.textContent = "Сначала останови чужую запись · STOP";
     renderRecorderControls();
     setPhase("recorder-controls");
   }
@@ -322,13 +277,13 @@
     if (control === "stop" && state.controlStep === 0) {
       state.controlStep = 1;
       ui.deviceState.textContent = "STOP";
-      ui.controlHint.textContent = "Шаг 2 из 3 · Нажми REW один раз.";
+      ui.controlHint.textContent = "Вернись к началу последнего файла · REW";
       renderRecorderControls();
       thump(0, .04, 110);
     } else if (control === "rew" && state.controlStep === 1) {
       state.controlStep = 2;
       ui.deviceTime.textContent = "00:17:34";
-      ui.controlHint.textContent = "Шаг 3 из 3 · Нажми PLAY.";
+      ui.controlHint.textContent = "Включи последний файл · PLAY";
       renderRecorderControls();
       [0, .08, .16, .24].forEach((delay, index) => tone(620 - index * 70, .04, .018, delay, "square"));
     } else if (control === "play" && state.controlStep === 2) {
@@ -338,75 +293,8 @@
       renderRecorderControls();
       logEvent("recorder_sequence_complete");
       await sleep(300);
-      showEvidenceBriefing();
+      playRecordingScene();
     }
-  }
-
-  const eventOptions = [
-    { id: "door", label: "Металлическая дверь" },
-    { id: "drop", label: "Удар и скольжение" },
-    { id: "enter", label: "Вторая походка усилилась" },
-    { id: "exit", label: "Первая походка затихла" },
-  ];
-  const answer = ["drop", "exit", "enter", "door"];
-
-  function showOrderPuzzle() {
-    setPhase("order");
-    ui.orderPuzzle.hidden = false;
-    ui.objective.textContent = "Выстрой четыре события. Запись можно переслушать.";
-    renderOrder();
-  }
-
-  function renderOrder() {
-    ui.orderSlots.innerHTML = "";
-    answer.forEach((_, index) => {
-      const slot = document.createElement("div");
-      slot.className = "order-slot";
-      const selected = eventOptions.find((item) => item.id === state.order[index]);
-      slot.innerHTML = `<b>${index + 1}</b><span>${selected ? selected.label : "—"}</span>`;
-      if (selected) slot.addEventListener("click", () => { state.order.splice(index, 1); renderOrder(); });
-      ui.orderSlots.append(slot);
-    });
-    ui.orderChoices.innerHTML = "";
-    eventOptions.forEach((item) => {
-      const button = document.createElement("button");
-      button.textContent = item.label;
-      button.disabled = state.order.includes(item.id);
-      button.addEventListener("click", () => {
-        if (state.order.length < 4) state.order.push(item.id);
-        renderOrder();
-      });
-      ui.orderChoices.append(button);
-    });
-    ui.checkOrder.disabled = state.order.length !== 4;
-  }
-
-  async function checkOrder() {
-    const correct = state.order.every((id, index) => id === answer[index]);
-    state.orderAttempts += 1;
-    logEvent("order_attempt", { correct });
-    if (!correct) {
-      ui.orderPuzzle.classList.remove("wrong");
-      void ui.orderPuzzle.offsetWidth;
-      ui.orderPuzzle.classList.add("wrong");
-      ui.orderResult.textContent = state.orderAttempts > 1
-        ? "Подсказка: удар и скольжение были первыми, металлическая дверь — последней."
-        : "Не сходится. Порядок сохранён — измени нужные пункты или переслушай запись.";
-      return;
-    }
-    ui.orderResult.textContent = "Сначала предмет. Потом один человек вышел. Другой вошёл позже.";
-    ui.checkOrder.disabled = true;
-    tone(520, .25, .03);
-    tone(660, .28, .025, .14);
-    tone(820, .32, .02, .28);
-    ui.orderPuzzle.hidden = true;
-    showDeduction();
-  }
-
-  function showDeduction() {
-    setPhase("deduction");
-    ui.deductionScene.hidden = false;
-    ui.objective.textContent = "Запись восстановила последовательность событий.";
   }
 
   async function playRemote(url) {
@@ -441,11 +329,11 @@
   }
 
   async function playRecordingScene() {
-    ui.deductionScene.hidden = true;
+    ui.recorderPanel.hidden = true;
     setPhase("recording");
     ui.recordingScene.hidden = false;
     ui.continueRecording.hidden = true;
-    ui.objective.textContent = "Последний файл записан хозяйкой диктофона.";
+    ui.objective.textContent = "Диктофон воспроизводит последний сохранённый файл.";
     const parts = [
       "Он пришёл за мной. На вокзал. Мой руководитель. Стоит у вагона.",
       "Я не поеду. Сейчас выйду, вернусь внутрь и позвоню сто двенадцать.",
@@ -468,8 +356,13 @@
     ui.voiceChoices.hidden = true;
     setPhase("voice-match");
     ui.chapter.textContent = "02 · ЗА ДВЕРЬЮ";
-    ui.objective.textContent = "Человек с записи стоит за дверью вагона.";
-    ui.soundCaption.textContent = "[тот же мужской голос за дверью] Ваш билет, пожалуйста.";
+    ui.objective.textContent = "Шаги остановились у дальней двери тамбура.";
+    ui.trainBackground.style.transform = "scale(1.18) translate(-4%, 1%)";
+    [0, .48, .96].forEach((delay, index) => footstep(delay, .045 + index * .018, 58));
+    await sleep(1750);
+    thump(0, .08, 74);
+    await sleep(550);
+    ui.soundCaption.textContent = "[тот же мужской голос за стеклом] Ваш билет, пожалуйста.";
     ui.soundCaption.hidden = false;
     const liveVoice = await playRemote(ASSETS.manLive);
     await waitForAudio(liveVoice, 3200, 15000);
@@ -483,10 +376,8 @@
     ui.voiceMatch.hidden = true;
     ui.workprintEnd.hidden = false;
     setPhase("end");
-    ui.choiceConsequence.textContent = choice === "hide"
-      ? "Она прячет устройство, не открывает дверь и идёт прямо к проводнице."
-      : "Она оставляет устройство, не открывает дверь и перемещается ближе к другим пассажирам.";
-    ui.objective.textContent = "Она в безопасности. Мужчина остаётся за закрытой дверью.";
+    ui.choiceConsequence.textContent = "Свет жилой части вагона становится ближе. Дверь тамбура остаётся позади.";
+    ui.objective.textContent = "До проводницы — два купе. Он остаётся на линии.";
   }
 
   function makeDraggable(element, target, onSuccess) {
@@ -567,10 +458,6 @@
   });
   ui.recLed.addEventListener("click", revealRecorder);
   $$("[data-control]").forEach((button) => button.addEventListener("click", () => deviceControl(button.dataset.control)));
-  ui.playEvidenceButton.addEventListener("click", playEvidence);
-  ui.replayEvidence.addEventListener("click", playEvidence);
-  ui.checkOrder.addEventListener("click", checkOrder);
-  ui.openLastFile.addEventListener("click", playRecordingScene);
   ui.continueRecording.addEventListener("click", showVoiceMatch);
   $$("[data-final-choice]").forEach((button) => button.addEventListener("click", () => finish(button.dataset.finalChoice)));
   $("#restart").addEventListener("click", () => {
