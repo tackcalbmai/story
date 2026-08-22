@@ -249,32 +249,60 @@
     tone(740, .14, .025, .08);
     ui.objective.textContent = "Обычный диктофон. Красный индикатор всё ещё горит.";
     ui.recorderPanel.hidden = false;
+    state.controlStep = 0;
+    ui.deviceState.textContent = "REC";
+    ui.deviceTime.textContent = "00:17:42";
+    ui.controlHint.textContent = "Шаг 1 из 3 · Нажми STOP.";
+    renderRecorderControls();
     setPhase("recorder-controls");
   }
 
-  async function deviceControl(control, button) {
+  const recorderControlOrder = ["stop", "rew", "play"];
+
+  function renderRecorderControls() {
+    $$("[data-control]").forEach((controlButton, index) => {
+      controlButton.disabled = false;
+      controlButton.classList.toggle("done", index < state.controlStep);
+      controlButton.classList.toggle("next", index === state.controlStep);
+      controlButton.classList.toggle("future", index > state.controlStep);
+      if (index === state.controlStep) {
+        controlButton.setAttribute("aria-current", "step");
+      } else {
+        controlButton.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  async function deviceControl(control) {
+    if (state.controlStep >= recorderControlOrder.length) return;
+    const expected = recorderControlOrder[state.controlStep];
+    if (control !== expected) {
+      ui.controlHint.textContent = `Сейчас нажми ${expected.toUpperCase()}.`;
+      ui.recorderPanel.classList.remove("wrong");
+      void ui.recorderPanel.offsetWidth;
+      ui.recorderPanel.classList.add("wrong");
+      tone(180, .08, .025, 0, "square");
+      logEvent("recorder_wrong_control", { pressed: control, expected });
+      return;
+    }
+
     if (control === "stop" && state.controlStep === 0) {
       state.controlStep = 1;
-      button.classList.add("done");
-      button.disabled = true;
       ui.deviceState.textContent = "STOP";
-      ui.controlHint.textContent = "Запись остановлена. Вернись на несколько секунд назад.";
-      $("[data-control='rew']").disabled = false;
+      ui.controlHint.textContent = "Шаг 2 из 3 · Нажми REW один раз.";
+      renderRecorderControls();
       thump(0, .04, 110);
     } else if (control === "rew" && state.controlStep === 1) {
       state.controlStep = 2;
-      button.classList.add("done");
-      button.disabled = true;
       ui.deviceTime.textContent = "00:17:34";
-      ui.controlHint.textContent = "Теперь воспроизведи последние секунды.";
-      $("[data-control='play']").disabled = false;
+      ui.controlHint.textContent = "Шаг 3 из 3 · Нажми PLAY.";
+      renderRecorderControls();
       [0, .08, .16, .24].forEach((delay, index) => tone(620 - index * 70, .04, .018, delay, "square"));
     } else if (control === "play" && state.controlStep === 2) {
       state.controlStep = 3;
-      button.classList.add("done");
-      button.disabled = true;
       ui.deviceState.textContent = "PLAY";
       ui.controlHint.textContent = "Воспроизведение";
+      renderRecorderControls();
       logEvent("recorder_sequence_complete");
       await sleep(300);
       playEvidence();
@@ -483,7 +511,7 @@
     logEvent("sound_toggle", { sound: state.sound });
   });
   ui.recLed.addEventListener("click", revealRecorder);
-  $$("[data-control]").forEach((button) => button.addEventListener("click", () => deviceControl(button.dataset.control, button)));
+  $$("[data-control]").forEach((button) => button.addEventListener("click", () => deviceControl(button.dataset.control)));
   ui.checkOrder.addEventListener("click", checkOrder);
   ui.continueRecording.addEventListener("click", showVoiceMatch);
   $$("[data-final-choice]").forEach((button) => button.addEventListener("click", () => finish(button.dataset.finalChoice)));
